@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #48261d;
+
+  /* Brand palette */
+  --color-mahogany: #48261d;
+  --color-ignite: #f94c00;
+  --color-ignite-hover: #d94200;
+  --color-crystal: #cae7f7;
+  --color-crystal-soft: #eaf6fc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-mahogany: var(--color-mahogany);
+  --color-ignite: var(--color-ignite);
+  --color-ignite-hover: var(--color-ignite-hover);
+  --color-crystal: var(--color-crystal);
+  --color-crystal-soft: var(--color-crystal-soft);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}

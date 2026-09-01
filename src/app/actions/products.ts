@@ -1,0 +1,107 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import type { ProductDraft } from "@/lib/types";
+
+async function requireFotUser() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Not authenticated");
+  return session.user.id;
+}
+
+export async function createProduct(name: string) {
+  const userId = await requireFotUser();
+
+  const product = await prisma.product.create({
+    data: {
+      name,
+      createdById: userId,
+      steps: {
+        create: [{ title: "Step 1", order: 0 }],
+      },
+    },
+  });
+
+  redirect(`/fot/products/${product.id}`);
+}
+
+export async function saveProduct(draft: ProductDraft) {
+  await requireFotUser();
+
+  await prisma.$transaction(async (tx) => {
+    await tx.product.update({
+      where: { id: draft.id },
+      data: { name: draft.name },
+    });
+
+    const existingSteps = await tx.step.findMany({
+      where: { productId: draft.id },
+      select: { id: true },
+    });
+    const existingStepIds = existingSteps.map((s) => s.id);
+    const keptStepIds = draft.steps.filter((s) => s.id).map((s) => s.id as string);
+    const stepIdsToDelete = existingStepIds.filter((id) => !keptStepIds.includes(id));
+
+    if (stepIdsToDelete.length) {
+      await tx.step.deleteMany({ where: { id: { in: stepIdsToDelete } } });
+    }
+
+    for (const step of draft.steps) {
+      const stepRecord = step.id
+        ? await tx.step.update({
+            where: { id: step.id },
+            data: { title: step.title, order: step.order },
+          })
+        : await tx.step.create({
+            data: { title: step.title, order: step.order, productId: draft.id },
+          });
+
+      const existingFields = await tx.field.findMany({
+        where: { stepId: stepRecord.id },
+        select: { id: true },
+      });
+      const existingFieldIds = existingFields.map((f) => f.id);
+      const keptFieldIds = step.fields.filter((f) => f.id).map((f) => f.id as string);
+      const fieldIdsToDelete = existingFieldIds.filter((id) => !keptFieldIds.includes(id));
+
+      if (fieldIdsToDelete.length) {
+        await tx.field.deleteMany({ where: { id: { in: fieldIdsToDelete } } });
+      }
+
+      for (const field of step.fields) {
+        const data = {
+          label: field.label,
+          type: field.type,
+          required: field.required,
+          order: field.order,
+          options: field.type === "DROPDOWN" ? field.options ?? [] : undefined,
+          maxLength:
+            field.type === "TEXT" || field.type === "TEXTAREA" ? field.maxLength ?? null : null,
+          minFiles: field.type === "FILE" ? field.minFiles ?? 1 : null,
+          maxFiles: field.type === "FILE" ? field.maxFiles ?? 1 : null,
+          maxSizeMb: field.type === "FILE" ? field.maxSizeMb ?? 10 : null,
+          allowedTypes: field.type === "FILE" ? field.allowedTypes ?? [] : undefined,
+          width: field.type === "FILE" ? field.width ?? null : null,
+          height: field.type === "FILE" ? field.height ?? null : null,
+        };
+
+        if (field.id) {
+          await tx.field.update({ where: { id: field.id }, data });
+        } else {
+          await tx.field.create({ data: { ...data, stepId: stepRecord.id } });
+        }
+      }
+    }
+  });
+
+  revalidatePath(`/fot/products/${draft.id}`);
+}
+
+export async function deleteProduct(productId: string) {
+  await requireFotUser();
+  await prisma.product.delete({ where: { id: productId } });
+  revalidatePath("/fot/dashboard");
+}
