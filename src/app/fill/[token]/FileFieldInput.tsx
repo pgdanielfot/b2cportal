@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { upload } from "@vercel/blob/client";
 import { cropAndResize } from "@/lib/cropImage";
 import { formatLabels } from "@/lib/fileFormats";
 import { getMediaDimensions } from "@/lib/mediaDimensions";
@@ -32,11 +33,26 @@ type Preview = {
   type: string;
 };
 
-export default function FileFieldInput({ field }: { field: Field }) {
+type UploadedFile = { url: string; name: string; size: number; type: string };
+
+export default function FileFieldInput({
+  field,
+  token,
+  useBlobUpload,
+  onUploadingChange,
+}: {
+  field: Field;
+  token: string;
+  useBlobUpload: boolean;
+  onUploadingChange?: (fieldId: string, uploading: boolean) => void;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [formatError, setFormatError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [issues, setIssues] = useState<DimensionIssue[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [processingName, setProcessingName] = useState<string | null>(null);
   const [manualCropTarget, setManualCropTarget] = useState<DimensionIssue | null>(null);
   const objectUrls = useRef<string[]>([]);
@@ -54,6 +70,40 @@ export default function FileFieldInput({ field }: { field: Field }) {
     setPreviews(next);
   }
 
+  async function syncReadyFiles(files: File[]) {
+    setPreviewsFor(files);
+    setUploadError(null);
+
+    if (!useBlobUpload) return;
+
+    if (files.length === 0) {
+      setUploadedFiles([]);
+      return;
+    }
+
+    setUploading(true);
+    onUploadingChange?.(field.id, true);
+    try {
+      const results = await Promise.all(
+        files.map(async (file) => {
+          const blob = await upload(`${token}/${field.id}/${file.name}`, file, {
+            access: "public",
+            handleUploadUrl: "/api/upload",
+            clientPayload: JSON.stringify({ shareToken: token, fieldId: field.id }),
+          });
+          return { url: blob.url, name: file.name, size: file.size, type: file.type };
+        }),
+      );
+      setUploadedFiles(results);
+    } catch {
+      setUploadError("Upload failed. Please try again.");
+      setUploadedFiles([]);
+    } finally {
+      setUploading(false);
+      onUploadingChange?.(field.id, false);
+    }
+  }
+
   function replaceInputFiles(files: File[]) {
     const input = inputRef.current;
     if (!input) return;
@@ -65,7 +115,7 @@ export default function FileFieldInput({ field }: { field: Field }) {
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFormatError(null);
     setIssues([]);
-    setPreviewsFor([]);
+    await syncReadyFiles([]);
 
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
@@ -79,6 +129,14 @@ export default function FileFieldInput({ field }: { field: Field }) {
         e.target.value = "";
         return;
       }
+    }
+
+    const maxSizeMb = field.maxSizeMb ?? 10;
+    const tooBig = files.filter((f) => f.size > maxSizeMb * 1024 * 1024);
+    if (tooBig.length > 0) {
+      setFormatError(`"${tooBig.map((f) => f.name).join(", ")}" exceeds the ${maxSizeMb}MB limit.`);
+      e.target.value = "";
+      return;
     }
 
     if (field.width && field.height) {
@@ -99,11 +157,11 @@ export default function FileFieldInput({ field }: { field: Field }) {
           })),
         );
       }
-      setPreviewsFor(ok.map((c) => c.file));
+      await syncReadyFiles(ok.map((c) => c.file));
       return;
     }
 
-    setPreviewsFor(files);
+    await syncReadyFiles(files);
   }
 
   function removeFileFromInput(file: File) {
@@ -116,13 +174,13 @@ export default function FileFieldInput({ field }: { field: Field }) {
     setProcessingName(issue.file.name);
     try {
       const fixed = await cropAndResize(issue.file, field.width, field.height);
-      applyFixedFile(issue, fixed);
+      await applyFixedFile(issue, fixed);
     } finally {
       setProcessingName(null);
     }
   }
 
-  function applyFixedFile(issue: DimensionIssue, fixed: File) {
+  async function applyFixedFile(issue: DimensionIssue, fixed: File) {
     const current = Array.from(inputRef.current?.files ?? []);
     const updated = current.map((f) => (f === issue.file ? fixed : f));
     replaceInputFiles(updated);
@@ -130,7 +188,7 @@ export default function FileFieldInput({ field }: { field: Field }) {
 
     const remainingIssues = issues.filter((i) => i.file !== issue.file);
     setIssues(remainingIssues);
-    setPreviewsFor(updated.filter((f) => !remainingIssues.some((i) => i.file === f)));
+    await syncReadyFiles(updated.filter((f) => !remainingIssues.some((i) => i.file === f)));
   }
 
   function handleRemoveIssue(issue: DimensionIssue) {
@@ -144,12 +202,15 @@ export default function FileFieldInput({ field }: { field: Field }) {
       <input
         ref={inputRef}
         type="file"
-        name={field.id}
+        name={useBlobUpload ? undefined : field.id}
         multiple={(field.maxFiles ?? 1) > 1}
         accept={field.allowedTypes.length ? field.allowedTypes.join(",") : undefined}
         onChange={handleChange}
         className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
       />
+      {useBlobUpload && (
+        <input type="hidden" name={field.id} value={JSON.stringify(uploadedFiles)} />
+      )}
       <p className="text-xs text-mahogany/40">
         {field.minFiles && field.minFiles > 1
           ? `${field.minFiles}–${field.maxFiles ?? 1} file(s)`
@@ -160,6 +221,8 @@ export default function FileFieldInput({ field }: { field: Field }) {
       </p>
 
       {formatError && <p className="text-sm text-red-600">{formatError}</p>}
+      {uploading && <p className="text-xs text-mahogany/50">Uploading…</p>}
+      {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
 
       {previews.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -244,7 +307,7 @@ export default function FileFieldInput({ field }: { field: Field }) {
           targetHeight={field.height}
           onCancel={() => setManualCropTarget(null)}
           onConfirm={(fixed) => {
-            applyFixedFile(manualCropTarget, fixed);
+            void applyFixedFile(manualCropTarget, fixed);
             setManualCropTarget(null);
           }}
         />

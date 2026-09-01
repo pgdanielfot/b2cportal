@@ -66,73 +66,109 @@ export async function submitFillForm(
 
   for (const field of allFields) {
     if (field.type === "FILE") {
-      const files = formData.getAll(field.id).filter((v): v is File => v instanceof File && v.size > 0);
+      const rawValues = formData.getAll(field.id);
+      const files = rawValues.filter((v): v is File => v instanceof File && v.size > 0);
+      const blobJson = rawValues.find((v): v is string => typeof v === "string" && v.length > 0);
 
-      if (field.required && files.length === 0) {
-        return { ok: false, error: `"${field.label}" is required.` };
-      }
-
-      if (files.length === 0) continue;
-
-      const minFiles = field.minFiles ?? 1;
-      if (files.length < minFiles) {
-        return { ok: false, error: `"${field.label}" requires at least ${minFiles} file(s).` };
-      }
-
-      const maxFiles = field.maxFiles ?? 1;
-      if (files.length > maxFiles) {
-        return { ok: false, error: `"${field.label}" allows at most ${maxFiles} file(s).` };
-      }
-
-      const maxSizeMb = field.maxSizeMb ?? 10;
-      const allowedTypes = (field.allowedTypes as string[] | null) ?? [];
-
-      const buffers: Buffer[] = [];
-      for (const file of files) {
-        if (file.size > maxSizeMb * 1024 * 1024) {
-          return { ok: false, error: `"${field.label}" exceeds ${maxSizeMb}MB limit.` };
-        }
-        if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
-          return {
-            ok: false,
-            error: `"${field.label}": "${file.name}" is not an accepted format. Allowed formats: ${formatLabels(allowedTypes)}.`,
-          };
+      if (files.length > 0) {
+        // Local dev path: raw file bytes came through the server action, so we
+        // re-validate and write them to local disk (or Blob if configured).
+        const minFiles = field.minFiles ?? 1;
+        if (files.length < minFiles) {
+          return { ok: false, error: `"${field.label}" requires at least ${minFiles} file(s).` };
         }
 
-        const buffer = Buffer.from(await file.arrayBuffer());
-        buffers.push(buffer);
+        const maxFiles = field.maxFiles ?? 1;
+        if (files.length > maxFiles) {
+          return { ok: false, error: `"${field.label}" allows at most ${maxFiles} file(s).` };
+        }
 
-        if (field.width || field.height) {
-          try {
-            const dimensions = imageSize(buffer);
-            if (
-              (field.width && dimensions.width !== field.width) ||
-              (field.height && dimensions.height !== field.height)
-            ) {
-              return {
-                ok: false,
-                error: `"${field.label}": "${file.name}" is ${dimensions.width}×${dimensions.height}px, but must be exactly ${field.width ?? "any"}×${field.height ?? "any"}px. Crop or resize it and try again.`,
-              };
-            }
-          } catch {
+        const maxSizeMb = field.maxSizeMb ?? 10;
+        const allowedTypes = (field.allowedTypes as string[] | null) ?? [];
+
+        const buffers: Buffer[] = [];
+        for (const file of files) {
+          if (file.size > maxSizeMb * 1024 * 1024) {
+            return { ok: false, error: `"${field.label}" exceeds ${maxSizeMb}MB limit.` };
+          }
+          if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
             return {
               ok: false,
-              error: `"${field.label}": "${file.name}" could not be read as an image, so its dimensions couldn't be checked.`,
+              error: `"${field.label}": "${file.name}" is not an accepted format. Allowed formats: ${formatLabels(allowedTypes)}.`,
             };
           }
+
+          const buffer = Buffer.from(await file.arrayBuffer());
+          buffers.push(buffer);
+
+          if (field.width || field.height) {
+            try {
+              const dimensions = imageSize(buffer);
+              if (
+                (field.width && dimensions.width !== field.width) ||
+                (field.height && dimensions.height !== field.height)
+              ) {
+                return {
+                  ok: false,
+                  error: `"${field.label}": "${file.name}" is ${dimensions.width}×${dimensions.height}px, but must be exactly ${field.width ?? "any"}×${field.height ?? "any"}px. Crop or resize it and try again.`,
+                };
+              }
+            } catch {
+              return {
+                ok: false,
+                error: `"${field.label}": "${file.name}" could not be read as an image, so its dimensions couldn't be checked.`,
+              };
+            }
+          }
         }
+
+        const savedFiles = [];
+        for (let i = 0; i < files.length; i++) {
+          savedFiles.push(await saveUploadedFile(submission.id, files[i], buffers[i]));
+        }
+
+        await prisma.fieldValue.upsert({
+          where: { submissionId_fieldId: { submissionId: submission.id, fieldId: field.id } },
+          create: { submissionId: submission.id, fieldId: field.id, files: savedFiles },
+          update: { files: savedFiles },
+        });
+      } else if (blobJson) {
+        // Production path: the client already uploaded these directly to Blob
+        // (format/size were enforced server-side at upload time, dimensions
+        // were checked client-side before upload started).
+        let blobFiles: { url: string; name: string; size: number; type: string }[] = [];
+        try {
+          blobFiles = JSON.parse(blobJson);
+        } catch {
+          blobFiles = [];
+        }
+
+        if (field.required && blobFiles.length === 0) {
+          return { ok: false, error: `"${field.label}" is required.` };
+        }
+        if (blobFiles.length === 0) continue;
+
+        const minFiles = field.minFiles ?? 1;
+        if (blobFiles.length < minFiles) {
+          return { ok: false, error: `"${field.label}" requires at least ${minFiles} file(s).` };
+        }
+
+        const maxFiles = field.maxFiles ?? 1;
+        if (blobFiles.length > maxFiles) {
+          return { ok: false, error: `"${field.label}" allows at most ${maxFiles} file(s).` };
+        }
+
+        await prisma.fieldValue.upsert({
+          where: { submissionId_fieldId: { submissionId: submission.id, fieldId: field.id } },
+          create: { submissionId: submission.id, fieldId: field.id, files: blobFiles },
+          update: { files: blobFiles },
+        });
+        continue;
       }
 
-      const savedFiles = [];
-      for (let i = 0; i < files.length; i++) {
-        savedFiles.push(await saveUploadedFile(submission.id, files[i], buffers[i]));
+      if (field.required && files.length === 0 && !blobJson) {
+        return { ok: false, error: `"${field.label}" is required.` };
       }
-
-      await prisma.fieldValue.upsert({
-        where: { submissionId_fieldId: { submissionId: submission.id, fieldId: field.id } },
-        create: { submissionId: submission.id, fieldId: field.id, files: savedFiles },
-        update: { files: savedFiles },
-      });
     } else {
       const value = (formData.get(field.id) as string | null)?.trim() ?? "";
 

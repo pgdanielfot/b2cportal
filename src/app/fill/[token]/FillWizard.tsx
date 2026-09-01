@@ -30,22 +30,35 @@ export default function FillWizard({
   token,
   productName,
   steps,
+  useBlobUpload,
 }: {
   token: string;
   productName: string;
   steps: Step[];
+  useBlobUpload: boolean;
 }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [charCounts, setCharCounts] = useState<Record<string, number>>({});
+  const [uploadingFields, setUploadingFields] = useState<Set<string>>(new Set());
   const [uploadedSummary, setUploadedSummary] = useState<
     { label: string; files: { name: string; url: string; type: string }[] }[]
   >([]);
   const formRef = useRef<HTMLFormElement>(null);
 
   const isLastStep = currentStep === steps.length - 1;
+  const isUploading = uploadingFields.size > 0;
+
+  function handleUploadingChange(fieldId: string, uploading: boolean) {
+    setUploadingFields((prev) => {
+      const next = new Set(prev);
+      if (uploading) next.add(fieldId);
+      else next.delete(fieldId);
+      return next;
+    });
+  }
 
   function validateStep(stepIndex: number): string | null {
     const form = formRef.current;
@@ -55,8 +68,17 @@ export default function FillWizard({
       if (!field.required) continue;
 
       if (field.type === "FILE") {
-        const input = form.elements.namedItem(field.id) as HTMLInputElement | null;
-        const fileCount = input?.files?.length ?? 0;
+        const el = form.elements.namedItem(field.id) as HTMLInputElement | null;
+        let fileCount = 0;
+        if (el?.type === "file") {
+          fileCount = el.files?.length ?? 0;
+        } else if (el?.type === "hidden") {
+          try {
+            fileCount = (JSON.parse(el.value || "[]") as unknown[]).length;
+          } catch {
+            fileCount = 0;
+          }
+        }
         if (fileCount < (field.minFiles ?? 1)) {
           return `"${field.label}" is required.`;
         }
@@ -106,17 +128,22 @@ export default function FillWizard({
         const fileFields = steps.flatMap((s) => s.fields).filter((f) => f.type === "FILE");
         setUploadedSummary(
           fileFields
-            .map((f) => ({
-              label: f.label,
-              files: formData
-                .getAll(f.id)
+            .map((f) => {
+              const raw = formData.getAll(f.id);
+              const fromFiles = raw
                 .filter((v): v is File => v instanceof File && v.size > 0)
-                .map((file) => ({
-                  name: file.name,
-                  url: URL.createObjectURL(file),
-                  type: file.type,
-                })),
-            }))
+                .map((file) => ({ name: file.name, url: URL.createObjectURL(file), type: file.type }));
+              const fromBlob = raw
+                .filter((v): v is string => typeof v === "string" && v.length > 0)
+                .flatMap((v) => {
+                  try {
+                    return JSON.parse(v) as { name: string; url: string; type: string }[];
+                  } catch {
+                    return [];
+                  }
+                });
+              return { label: f.label, files: [...fromFiles, ...fromBlob] };
+            })
             .filter((f) => f.files.length > 0),
         );
         setDone(true);
@@ -253,7 +280,14 @@ export default function FillWizard({
                     ))}
                   </select>
                 )}
-                {field.type === "FILE" && <FileFieldInput field={field} />}
+                {field.type === "FILE" && (
+                  <FileFieldInput
+                    field={field}
+                    token={token}
+                    useBlobUpload={useBlobUpload}
+                    onUploadingChange={handleUploadingChange}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -277,18 +311,19 @@ export default function FillWizard({
           {isLastStep ? (
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || isUploading}
               className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
             >
-              {isPending ? "Submitting..." : "Submit"}
+              {isUploading ? "Uploading..." : isPending ? "Submitting..." : "Submit"}
             </button>
           ) : (
             <button
               type="button"
               onClick={handleNext}
-              className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover"
+              disabled={isUploading}
+              className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
             >
-              Next
+              {isUploading ? "Uploading..." : "Next"}
             </button>
           )}
         </div>

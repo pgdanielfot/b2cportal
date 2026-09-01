@@ -52,7 +52,12 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
   return (
     <div className="min-h-screen bg-crystal-soft">
       <div className="mx-auto max-w-xl px-6 py-12">
-        <FillWizard token={token} productName={submission.product.name} steps={steps} />
+        <FillWizard
+          token={token}
+          productName={submission.product.name}
+          steps={steps}
+          useBlobUpload={Boolean(process.env.BLOB_READ_WRITE_TOKEN)}
+        />
       </div>
     </div>
   );
