@@ -31,7 +31,10 @@ export async function createProduct(name: string) {
 export async function saveProduct(draft: ProductDraft) {
   await requireFotUser();
 
-  await prisma.$transaction(async (tx) => {
+  // This loops over every step/field with sequential round trips; against a
+  // remote Postgres that can exceed Prisma's default 5s transaction timeout.
+  await prisma.$transaction(
+    async (tx) => {
     await tx.product.update({
       where: { id: draft.id },
       data: { name: draft.name },
@@ -95,7 +98,9 @@ export async function saveProduct(draft: ProductDraft) {
         }
       }
     }
-  });
+    },
+    { timeout: 30000 },
+  );
 
   revalidatePath(`/fot/products/${draft.id}`);
 }
