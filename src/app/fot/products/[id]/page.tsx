@@ -31,11 +31,15 @@ export default async function ProductPage({
     steps: product.steps.map((s) => ({
       id: s.id,
       title: s.title,
+      titleMs: s.titleMs ?? undefined,
+      titleZh: s.titleZh ?? undefined,
       order: s.order,
       condition: (s.condition as Condition) ?? undefined,
       fields: s.fields.map((f) => ({
         id: f.id,
         label: f.label,
+        labelMs: f.labelMs ?? undefined,
+        labelZh: f.labelZh ?? undefined,
         type: f.type,
         required: f.required,
         order: f.order,

@@ -39,8 +39,10 @@ model Product {
 }
 
 model Step {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   title     String
+  titleMs   String? // Bahasa Melayu translation, shown to B2C/Agent if set
+  titleZh   String? // Mandarin translation, shown to B2C/Agent if set
   order     Int
 
   // Skip this step unless another field's answer matches:
@@ -67,6 +69,8 @@ enum FieldType {
 model Field {
   id           String    @id @default(cuid())
   label        String
+  labelMs      String? // Bahasa Melayu translation, shown to B2C/Agent if set
+  labelZh      String? // Mandarin translation, shown to B2C/Agent if set
   type         FieldType
   required     Boolean   @default(false)
   order        Int

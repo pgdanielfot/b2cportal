@@ -211,6 +211,21 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
             </button>
           </div>
 
+          <div className="flex flex-wrap gap-2 pl-6">
+            <input
+              value={step.titleMs ?? ""}
+              onChange={(e) => updateStep(stepIndex, { titleMs: e.target.value })}
+              placeholder="Title in Bahasa Melayu (optional)"
+              className="flex-1 min-w-[180px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+            />
+            <input
+              value={step.titleZh ?? ""}
+              onChange={(e) => updateStep(stepIndex, { titleZh: e.target.value })}
+              placeholder="Title in Mandarin (optional)"
+              className="flex-1 min-w-[180px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+            />
+          </div>
+
           <ConditionEditor
             condition={step.condition}
             candidateFields={savedFieldsExcept((si) => si !== stepIndex)}
@@ -278,6 +293,21 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
                   >
                     Remove
                   </button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pl-6">
+                  <input
+                    value={field.labelMs ?? ""}
+                    onChange={(e) => updateField(stepIndex, fieldIndex, { labelMs: e.target.value })}
+                    placeholder="Label in Bahasa Melayu (optional)"
+                    className="flex-1 min-w-[160px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+                  />
+                  <input
+                    value={field.labelZh ?? ""}
+                    onChange={(e) => updateField(stepIndex, fieldIndex, { labelZh: e.target.value })}
+                    placeholder="Label in Mandarin (optional)"
+                    className="flex-1 min-w-[160px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+                  />
                 </div>
 
                 {(field.type === "TEXT" || field.type === "TEXTAREA") && (

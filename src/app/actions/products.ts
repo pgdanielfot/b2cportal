@@ -61,6 +61,8 @@ export async function saveProduct(draft: ProductDraft) {
     for (const step of draft.steps) {
       const stepData = {
         title: step.title,
+        titleMs: step.titleMs || null,
+        titleZh: step.titleZh || null,
         order: step.order,
         condition: conditionToJson(step.condition),
       };
@@ -84,6 +86,8 @@ export async function saveProduct(draft: ProductDraft) {
       for (const field of step.fields) {
         const data = {
           label: field.label,
+          labelMs: field.labelMs || null,
+          labelZh: field.labelZh || null,
           type: field.type,
           required: field.required,
           order: field.order,

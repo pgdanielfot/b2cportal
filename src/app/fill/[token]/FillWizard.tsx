@@ -10,6 +10,8 @@ import { LANGUAGES, translations, type Language } from "@/lib/i18n";
 type Field = {
   id: string;
   label: string;
+  labelMs?: string;
+  labelZh?: string;
   type: "TEXT" | "TEXTAREA" | "URL" | "DATE" | "DROPDOWN" | "FILE";
   required: boolean;
   options: string[];
@@ -26,6 +28,8 @@ type Field = {
 type Step = {
   id: string;
   title: string;
+  titleMs?: string;
+  titleZh?: string;
   fields: Field[];
   condition?: Condition;
 };
@@ -67,6 +71,18 @@ export default function FillWizard({
     return isConditionMet(field.condition ?? null, answers);
   }
 
+  function localizedLabel(field: Field): string {
+    if (language === "ms" && field.labelMs) return field.labelMs;
+    if (language === "zh" && field.labelZh) return field.labelZh;
+    return field.label;
+  }
+
+  function localizedTitle(step: Step): string {
+    if (language === "ms" && step.titleMs) return step.titleMs;
+    if (language === "zh" && step.titleZh) return step.titleZh;
+    return step.title;
+  }
+
   function handleAnswerChange(fieldId: string, value: string) {
     setAnswers((prev) => ({ ...prev, [fieldId]: value }));
   }
@@ -100,7 +116,7 @@ export default function FillWizard({
           }
         }
         if (fileCount < (field.minFiles ?? 1)) {
-          return `"${field.label}" is required.`;
+          return `"${localizedLabel(field)}" is required.`;
         }
         continue;
       }
@@ -113,14 +129,14 @@ export default function FillWizard({
       const value = el?.value.trim() ?? "";
 
       if (!value) {
-        return `"${field.label}" is required.`;
+        return `"${localizedLabel(field)}" is required.`;
       }
 
       if (field.type === "URL") {
         try {
           new URL(value);
         } catch {
-          return `"${field.label}" must be a valid URL.`;
+          return `"${localizedLabel(field)}" must be a valid URL.`;
         }
       }
     }
@@ -162,7 +178,7 @@ export default function FillWizard({
                     return [];
                   }
                 });
-              return { label: f.label, files: [...fromFiles, ...fromBlob] };
+              return { label: localizedLabel(f), files: [...fromFiles, ...fromBlob] };
             })
             .filter((f) => f.files.length > 0),
         );
@@ -252,16 +268,17 @@ export default function FillWizard({
         onSubmit={handleSubmit}
         className="rounded-lg border border-crystal bg-white p-6 space-y-5"
       >
+        <input type="hidden" name="__language" value={language ?? "en"} />
         {steps.map((step, stepIndex) => (
           <div
             key={step.id}
             className={stepIndex === currentStepIndex ? "space-y-4" : "hidden"}
           >
-            <h2 className="font-medium text-mahogany">{step.title}</h2>
+            <h2 className="font-medium text-mahogany">{localizedTitle(step)}</h2>
             {step.fields.map((field) => (
               <div key={field.id} className={fieldVisible(field) ? "space-y-1" : "hidden"}>
                 <label className="text-sm font-medium text-mahogany">
-                  {field.label}
+                  {localizedLabel(field)}
                   {field.required && <span className="text-ignite"> *</span>}
                 </label>
 
@@ -336,7 +353,7 @@ export default function FillWizard({
                 )}
                 {field.type === "FILE" && (
                   <FileFieldInput
-                    field={field}
+                    field={{ ...field, label: localizedLabel(field) }}
                     token={token}
                     useBlobUpload={useBlobUpload}
                     onUploadingChange={handleUploadingChange}

@@ -5,6 +5,8 @@ export type FieldTypeValue = "TEXT" | "TEXTAREA" | "URL" | "DATE" | "DROPDOWN" |
 export type FieldDraft = {
   id?: string;
   label: string;
+  labelMs?: string;
+  labelZh?: string;
   type: FieldTypeValue;
   required: boolean;
   order: number;
@@ -22,6 +24,8 @@ export type FieldDraft = {
 export type StepDraft = {
   id?: string;
   title: string;
+  titleMs?: string;
+  titleZh?: string;
   order: number;
   fields: FieldDraft[];
   condition?: Condition;
