@@ -42,9 +42,11 @@ export default function LoginPage() {
         <h1 className="text-xl font-semibold text-mahogany">FOT Sign In</h1>
 
         <div className="space-y-1">
-          <label className="text-sm font-medium text-mahogany">Email</label>
+          <label className="text-sm font-medium text-mahogany">Email or Username</label>
           <input
-            type="email"
+            type="text"
+            autoCapitalize="none"
+            autoCorrect="off"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
