@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { saveProduct } from "@/app/actions/products";
 import type { ProductDraft, StepDraft, FieldDraft, FieldTypeValue } from "@/lib/types";
 import { FILE_FORMAT_OPTIONS } from "@/lib/fileFormats";
@@ -25,6 +25,32 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
   const [draft, setDraft] = useState<ProductDraft>(initial);
   const [isPending, startTransition] = useTransition();
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const draggedStepIndex = useRef<number | null>(null);
+  const draggedField = useRef<{ stepIndex: number; fieldIndex: number } | null>(null);
+
+  function reorderStep(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return;
+    setDraft((d) => {
+      const steps = [...d.steps];
+      const [moved] = steps.splice(fromIndex, 1);
+      steps.splice(toIndex, 0, moved);
+      return { ...d, steps };
+    });
+  }
+
+  function reorderField(stepIndex: number, fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return;
+    setDraft((d) => ({
+      ...d,
+      steps: d.steps.map((s, i) => {
+        if (i !== stepIndex) return s;
+        const fields = [...s.fields];
+        const [moved] = fields.splice(fromIndex, 1);
+        fields.splice(toIndex, 0, moved);
+        return { ...s, fields };
+      }),
+    }));
+  }
 
   function updateStep(stepIndex: number, patch: Partial<StepDraft>) {
     setDraft((d) => ({
@@ -148,8 +174,29 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
       </div>
 
       {draft.steps.map((step, stepIndex) => (
-        <div key={step.id ?? stepIndex} className="rounded-lg border border-crystal bg-white p-5 space-y-4">
+        <div
+          key={step.id ?? stepIndex}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (draggedStepIndex.current !== null) {
+              reorderStep(draggedStepIndex.current, stepIndex);
+              draggedStepIndex.current = null;
+            }
+          }}
+          className="rounded-lg border border-crystal bg-white p-5 space-y-4"
+        >
           <div className="flex items-center gap-2">
+            <span
+              draggable
+              onDragStart={() => {
+                draggedStepIndex.current = stepIndex;
+              }}
+              title="Drag to reorder step"
+              className="cursor-grab select-none text-mahogany/30 hover:text-mahogany active:cursor-grabbing"
+            >
+              ⠿
+            </span>
             <span className="text-sm text-mahogany/40">Step {stepIndex + 1}</span>
             <input
               value={step.title}
@@ -172,8 +219,30 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
 
           <div className="space-y-3">
             {step.fields.map((field, fieldIndex) => (
-              <div key={field.id ?? fieldIndex} className="rounded-md border border-crystal p-3 space-y-2">
+              <div
+                key={field.id ?? fieldIndex}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const from = draggedField.current;
+                  if (from && from.stepIndex === stepIndex) {
+                    reorderField(stepIndex, from.fieldIndex, fieldIndex);
+                  }
+                  draggedField.current = null;
+                }}
+                className="rounded-md border border-crystal p-3 space-y-2"
+              >
                 <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    draggable
+                    onDragStart={() => {
+                      draggedField.current = { stepIndex, fieldIndex };
+                    }}
+                    title="Drag to reorder field"
+                    className="cursor-grab select-none text-mahogany/30 hover:text-mahogany active:cursor-grabbing"
+                  >
+                    ⠿
+                  </span>
                   <input
                     value={field.label}
                     onChange={(e) => updateField(stepIndex, fieldIndex, { label: e.target.value })}
