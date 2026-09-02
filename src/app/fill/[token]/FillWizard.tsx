@@ -156,6 +156,13 @@ export default function FillWizard({
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    const validationError = validateStep(currentStepIndex);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
     setError(null);
     startTransition(async () => {
