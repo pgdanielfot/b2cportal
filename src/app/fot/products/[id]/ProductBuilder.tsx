@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { saveProduct } from "@/app/actions/products";
 import type { ProductDraft, StepDraft, FieldDraft, FieldTypeValue } from "@/lib/types";
 import { FILE_FORMAT_OPTIONS } from "@/lib/fileFormats";
+import ConditionEditor from "./ConditionEditor";
 
 const FIELD_TYPES: { value: FieldTypeValue; label: string }[] = [
   { value: "TEXT", label: "Text box" },
@@ -96,6 +97,17 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
     }));
   }
 
+  function savedFieldsExcept(predicate: (stepIndex: number, fieldIndex: number) => boolean) {
+    return draft.steps.flatMap((s, si) =>
+      s.fields
+        .map((f, fi) => ({ ...f, stepIndex: si, fieldIndex: fi }))
+        .filter(
+          (f): f is typeof f & { id: string } =>
+            !!f.id && !f.id.startsWith("temp-") && predicate(f.stepIndex, f.fieldIndex),
+        ),
+    );
+  }
+
   function handleSave() {
     startTransition(async () => {
       const cleaned: ProductDraft = {
@@ -151,6 +163,12 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
               Remove step
             </button>
           </div>
+
+          <ConditionEditor
+            condition={step.condition}
+            candidateFields={savedFieldsExcept((si) => si !== stepIndex)}
+            onChange={(condition) => updateStep(stepIndex, { condition })}
+          />
 
           <div className="space-y-3">
             {step.fields.map((field, fieldIndex) => (
@@ -341,6 +359,14 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
                     </div>
                   </div>
                 )}
+
+                <ConditionEditor
+                  condition={field.condition}
+                  candidateFields={savedFieldsExcept(
+                    (si, fi) => !(si === stepIndex && fi === fieldIndex),
+                  )}
+                  onChange={(condition) => updateField(stepIndex, fieldIndex, { condition })}
+                />
               </div>
             ))}
           </div>

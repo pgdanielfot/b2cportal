@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import FillWizard from "./FillWizard";
+import type { Condition } from "@/lib/conditions";
 
 export default async function FillPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -33,6 +34,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
   const steps = submission.product.steps.map((s) => ({
     id: s.id,
     title: s.title,
+    condition: (s.condition as Condition) ?? undefined,
     fields: s.fields.map((f) => ({
       id: f.id,
       label: f.label,
@@ -46,6 +48,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
       allowedTypes: (f.allowedTypes as string[] | null) ?? [],
       width: f.width,
       height: f.height,
+      condition: (f.condition as Condition) ?? undefined,
     })),
   }));
 

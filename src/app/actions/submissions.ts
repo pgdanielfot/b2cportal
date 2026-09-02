@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { saveUploadedFile } from "@/lib/files";
 import { imageSize } from "image-size";
 import { formatLabels } from "@/lib/fileFormats";
+import { isConditionMet, type Condition } from "@/lib/conditions";
 
 async function requireFotUser() {
   const session = await auth();
@@ -62,9 +63,23 @@ export async function submitFillForm(
     return { ok: false, error: "This form has already been submitted." };
   }
 
-  const allFields = submission.product.steps.flatMap((s) => s.fields);
+  const allFields = submission.product.steps.flatMap((step) =>
+    step.fields.map((field) => ({ ...field, stepCondition: step.condition as Condition })),
+  );
+
+  const answers: Record<string, string> = {};
+  for (const field of allFields) {
+    if (field.type === "FILE") continue;
+    const raw = formData.get(field.id);
+    if (typeof raw === "string") answers[field.id] = raw.trim();
+  }
 
   for (const field of allFields) {
+    const isVisible =
+      isConditionMet(field.stepCondition, answers) &&
+      isConditionMet(field.condition as Condition, answers);
+    if (!isVisible) continue;
+
     if (field.type === "FILE") {
       const rawValues = formData.getAll(field.id);
       const files = rawValues.filter((v): v is File => v instanceof File && v.size > 0);

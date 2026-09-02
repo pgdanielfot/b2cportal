@@ -1,3 +1,5 @@
+import type { Condition } from "./conditions";
+
 export type FieldTypeValue = "TEXT" | "TEXTAREA" | "URL" | "DATE" | "DROPDOWN" | "FILE";
 
 export type FieldDraft = {
@@ -14,6 +16,7 @@ export type FieldDraft = {
   allowedTypes?: string[];
   width?: number;
   height?: number;
+  condition?: Condition;
 };
 
 export type StepDraft = {
@@ -21,6 +24,7 @@ export type StepDraft = {
   title: string;
   order: number;
   fields: FieldDraft[];
+  condition?: Condition;
 };
 
 export type ProductDraft = {

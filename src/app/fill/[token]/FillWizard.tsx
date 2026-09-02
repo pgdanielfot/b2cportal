@@ -4,6 +4,8 @@ import { useRef, useState, useTransition } from "react";
 import { submitFillForm } from "@/app/actions/submissions";
 import FileFieldInput from "./FileFieldInput";
 import ImageThumbnail from "./ImageThumbnail";
+import { isConditionMet, type Condition } from "@/lib/conditions";
+import { LANGUAGES, translations, type Language } from "@/lib/i18n";
 
 type Field = {
   id: string;
@@ -18,12 +20,14 @@ type Field = {
   allowedTypes: string[];
   width: number | null;
   height: number | null;
+  condition?: Condition;
 };
 
 type Step = {
   id: string;
   title: string;
   fields: Field[];
+  condition?: Condition;
 };
 
 export default function FillWizard({
@@ -37,19 +41,35 @@ export default function FillWizard({
   steps: Step[];
   useBlobUpload: boolean;
 }) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [language, setLanguage] = useState<Language | null>(null);
+  const [visiblePosition, setVisiblePosition] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [charCounts, setCharCounts] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [uploadingFields, setUploadingFields] = useState<Set<string>>(new Set());
   const [uploadedSummary, setUploadedSummary] = useState<
     { label: string; files: { name: string; url: string; type: string }[] }[]
   >([]);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const isLastStep = currentStep === steps.length - 1;
+  const t = translations[language ?? "en"];
   const isUploading = uploadingFields.size > 0;
+
+  const visibleStepIndices = steps
+    .map((s, i) => i)
+    .filter((i) => isConditionMet(steps[i].condition ?? null, answers));
+  const currentStepIndex = visibleStepIndices[visiblePosition] ?? 0;
+  const isLastStep = visiblePosition === visibleStepIndices.length - 1;
+
+  function fieldVisible(field: Field) {
+    return isConditionMet(field.condition ?? null, answers);
+  }
+
+  function handleAnswerChange(fieldId: string, value: string) {
+    setAnswers((prev) => ({ ...prev, [fieldId]: value }));
+  }
 
   function handleUploadingChange(fieldId: string, uploading: boolean) {
     setUploadingFields((prev) => {
@@ -65,7 +85,7 @@ export default function FillWizard({
     if (!form) return null;
 
     for (const field of steps[stepIndex].fields) {
-      if (!field.required) continue;
+      if (!field.required || !fieldVisible(field)) continue;
 
       if (field.type === "FILE") {
         const el = form.elements.namedItem(field.id) as HTMLInputElement | null;
@@ -109,13 +129,13 @@ export default function FillWizard({
   }
 
   function handleNext() {
-    const validationError = validateStep(currentStep);
+    const validationError = validateStep(currentStepIndex);
     if (validationError) {
       setError(validationError);
       return;
     }
     setError(null);
-    setCurrentStep((s) => Math.min(steps.length - 1, s + 1));
+    setVisiblePosition((p) => Math.min(visibleStepIndices.length - 1, p + 1));
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -153,18 +173,41 @@ export default function FillWizard({
     });
   }
 
+  if (!language) {
+    return (
+      <div className="rounded-lg border border-crystal bg-white p-8 text-center space-y-6">
+        <div>
+          <h1 className="text-lg font-semibold text-mahogany">{translations.en.chooseLanguage}</h1>
+          <p className="text-sm text-mahogany/50">{translations.en.chooseLanguageHint}</p>
+        </div>
+        <div className="flex flex-col gap-3">
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              type="button"
+              onClick={() => setLanguage(l.code)}
+              className="rounded-md border border-crystal px-4 py-3 text-sm font-medium text-mahogany hover:bg-crystal-soft"
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (done) {
     return (
       <div className="space-y-4">
         <div className="rounded-lg border border-crystal bg-white p-8 text-center space-y-2">
           <p className="text-2xl">✅</p>
-          <h1 className="text-lg font-semibold text-mahogany">Thank you!</h1>
-          <p className="text-sm text-mahogany/60">Your submission has been received.</p>
+          <h1 className="text-lg font-semibold text-mahogany">{t.thankYou}</h1>
+          <p className="text-sm text-mahogany/60">{t.submissionReceived}</p>
         </div>
 
         {uploadedSummary.length > 0 && (
           <div className="rounded-lg border border-crystal bg-white p-6 space-y-4">
-            <h2 className="font-medium text-mahogany">Uploaded files</h2>
+            <h2 className="font-medium text-mahogany">{t.uploadedFiles}</h2>
             {uploadedSummary.map((group) => (
               <div key={group.label} className="space-y-2">
                 <p className="text-sm font-medium text-mahogany/70">{group.label}</p>
@@ -195,10 +238,10 @@ export default function FillWizard({
       <div>
         <h1 className="text-lg font-semibold text-mahogany">{productName}</h1>
         <div className="mt-2 flex gap-1">
-          {steps.map((s, i) => (
+          {visibleStepIndices.map((_, i) => (
             <div
-              key={s.id}
-              className={`h-1.5 flex-1 rounded-full ${i <= currentStep ? "bg-ignite" : "bg-crystal"}`}
+              key={i}
+              className={`h-1.5 flex-1 rounded-full ${i <= visiblePosition ? "bg-ignite" : "bg-crystal"}`}
             />
           ))}
         </div>
@@ -210,10 +253,13 @@ export default function FillWizard({
         className="rounded-lg border border-crystal bg-white p-6 space-y-5"
       >
         {steps.map((step, stepIndex) => (
-          <div key={step.id} className={stepIndex === currentStep ? "space-y-4" : "hidden"}>
+          <div
+            key={step.id}
+            className={stepIndex === currentStepIndex ? "space-y-4" : "hidden"}
+          >
             <h2 className="font-medium text-mahogany">{step.title}</h2>
             {step.fields.map((field) => (
-              <div key={field.id} className="space-y-1">
+              <div key={field.id} className={fieldVisible(field) ? "space-y-1" : "hidden"}>
                 <label className="text-sm font-medium text-mahogany">
                   {field.label}
                   {field.required && <span className="text-ignite"> *</span>}
@@ -224,9 +270,10 @@ export default function FillWizard({
                     <input
                       name={field.id}
                       maxLength={field.maxLength ?? undefined}
-                      onChange={(e) =>
-                        setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }))
-                      }
+                      onChange={(e) => {
+                        setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }));
+                        handleAnswerChange(field.id, e.target.value);
+                      }}
                       className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
                     />
                     {field.maxLength && (
@@ -242,9 +289,10 @@ export default function FillWizard({
                       name={field.id}
                       rows={6}
                       maxLength={field.maxLength ?? undefined}
-                      onChange={(e) =>
-                        setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }))
-                      }
+                      onChange={(e) => {
+                        setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }));
+                        handleAnswerChange(field.id, e.target.value);
+                      }}
                       placeholder="You can write multiple paragraphs — press Enter to start a new line."
                       className="w-full resize-y rounded-md border px-3 py-2 text-sm leading-relaxed focus:border-ignite focus:outline-none"
                     />
@@ -260,6 +308,7 @@ export default function FillWizard({
                     type="url"
                     name={field.id}
                     placeholder="https://example.com"
+                    onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
                   />
                 )}
@@ -267,12 +316,17 @@ export default function FillWizard({
                   <input
                     type="date"
                     name={field.id}
+                    onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
                   />
                 )}
                 {field.type === "DROPDOWN" && (
-                  <select name={field.id} className="w-full rounded-md border px-3 py-2 text-sm">
-                    <option value="">Select...</option>
+                  <select
+                    name={field.id}
+                    onChange={(e) => handleAnswerChange(field.id, e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  >
+                    <option value="">{t.selectPlaceholder}</option>
                     {field.options.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -300,12 +354,12 @@ export default function FillWizard({
             type="button"
             onClick={() => {
               setError(null);
-              setCurrentStep((s) => Math.max(0, s - 1));
+              setVisiblePosition((p) => Math.max(0, p - 1));
             }}
-            disabled={currentStep === 0}
+            disabled={visiblePosition === 0}
             className="rounded-md border border-crystal px-4 py-2 text-sm font-medium text-mahogany disabled:opacity-40"
           >
-            Back
+            {t.back}
           </button>
 
           {isLastStep ? (
@@ -314,7 +368,7 @@ export default function FillWizard({
               disabled={isPending || isUploading}
               className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
             >
-              {isUploading ? "Uploading..." : isPending ? "Submitting..." : "Submit"}
+              {isUploading ? t.uploading : isPending ? t.submitting : t.submit}
             </button>
           ) : (
             <button
@@ -323,7 +377,7 @@ export default function FillWizard({
               disabled={isUploading}
               className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
             >
-              {isUploading ? "Uploading..." : "Next"}
+              {isUploading ? t.uploading : t.next}
             </button>
           )}
         </div>

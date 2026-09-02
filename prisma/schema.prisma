@@ -43,6 +43,10 @@ model Step {
   title     String
   order     Int
 
+  // Skip this step unless another field's answer matches:
+  // { fieldId: string, operator: "equals" | "not_equals", value: string }
+  condition Json?
+
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
 
@@ -80,6 +84,10 @@ model Field {
   allowedTypes Json? // e.g. ["image/png","image/jpeg"]
   width        Int? // required exact width in px, if any
   height       Int? // required exact height in px, if any
+
+  // Hide this field unless another field's answer matches:
+  // { fieldId: string, operator: "equals" | "not_equals", value: string }
+  condition Json?
 
   step   Step   @relation(fields: [stepId], references: [id], onDelete: Cascade)
   stepId String

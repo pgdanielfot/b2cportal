@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import ProductBuilder from "./ProductBuilder";
 import SubmissionsPanel from "./SubmissionsPanel";
 import type { ProductDraft } from "@/lib/types";
+import type { Condition } from "@/lib/conditions";
 
 export default async function ProductPage({
   params,
@@ -31,6 +32,7 @@ export default async function ProductPage({
       id: s.id,
       title: s.title,
       order: s.order,
+      condition: (s.condition as Condition) ?? undefined,
       fields: s.fields.map((f) => ({
         id: f.id,
         label: f.label,
@@ -45,6 +47,7 @@ export default async function ProductPage({
         allowedTypes: (f.allowedTypes as string[] | null) ?? [],
         width: f.width ?? undefined,
         height: f.height ?? undefined,
+        condition: (f.condition as Condition) ?? undefined,
       })),
     })),
   };

@@ -1,10 +1,16 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { ProductDraft } from "@/lib/types";
+import type { Condition } from "@/lib/conditions";
+
+function conditionToJson(condition: Condition | undefined) {
+  return condition ? condition : Prisma.JsonNull;
+}
 
 async function requireFotUser() {
   const session = await auth();
@@ -53,14 +59,15 @@ export async function saveProduct(draft: ProductDraft) {
     }
 
     for (const step of draft.steps) {
+      const stepData = {
+        title: step.title,
+        order: step.order,
+        condition: conditionToJson(step.condition),
+      };
+
       const stepRecord = step.id
-        ? await tx.step.update({
-            where: { id: step.id },
-            data: { title: step.title, order: step.order },
-          })
-        : await tx.step.create({
-            data: { title: step.title, order: step.order, productId: draft.id },
-          });
+        ? await tx.step.update({ where: { id: step.id }, data: stepData })
+        : await tx.step.create({ data: { ...stepData, productId: draft.id } });
 
       const existingFields = await tx.field.findMany({
         where: { stepId: stepRecord.id },
@@ -89,6 +96,7 @@ export async function saveProduct(draft: ProductDraft) {
           allowedTypes: field.type === "FILE" ? field.allowedTypes ?? [] : undefined,
           width: field.type === "FILE" ? field.width ?? null : null,
           height: field.type === "FILE" ? field.height ?? null : null,
+          condition: conditionToJson(field.condition),
         };
 
         if (field.id) {
@@ -99,7 +107,7 @@ export async function saveProduct(draft: ProductDraft) {
       }
     }
     },
-    { timeout: 30000 },
+    { timeout: 30000, maxWait: 10000 },
   );
 
   revalidatePath(`/fot/products/${draft.id}`);

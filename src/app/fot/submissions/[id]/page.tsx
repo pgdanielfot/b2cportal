@@ -49,13 +49,23 @@ export default async function SubmissionDetailPage({
                       <span className="text-sm text-mahogany/40">No file uploaded</span>
                     )}
                     {((fv?.files as StoredFile[] | null) ?? []).map((f, i) => (
-                      <a
-                        key={i}
-                        href={f.url}
-                        className="rounded-md border border-crystal px-3 py-1 text-sm text-ignite hover:bg-crystal-soft"
-                      >
-                        {f.name}
-                      </a>
+                      <div key={i} className="flex items-center gap-1">
+                        <a
+                          href={f.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-md border border-crystal px-3 py-1 text-sm text-ignite hover:bg-crystal-soft"
+                        >
+                          {f.name}
+                        </a>
+                        <a
+                          href={`/api/download?url=${encodeURIComponent(f.url)}&name=${encodeURIComponent(f.name)}`}
+                          className="rounded-md border border-crystal px-2 py-1 text-sm text-mahogany hover:bg-crystal-soft"
+                          title="Download"
+                        >
+                          ⬇
+                        </a>
+                      </div>
                     ))}
                   </div>
                 ) : (
