@@ -18,6 +18,7 @@ export type FieldDraft = {
   allowedTypes?: string[];
   width?: number;
   height?: number;
+  sampleUrl?: string;
   condition?: Condition;
 };
 
@@ -37,6 +38,5 @@ export type StepDraft = {
 export type ProductDraft = {
   id: string;
   name: string;
-  adSamplesUrl?: string;
   steps: StepDraft[];
 };

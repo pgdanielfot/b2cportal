@@ -34,9 +34,6 @@ model Product {
   createdBy   FotUser @relation(fields: [createdById], references: [id])
   createdById String
 
-  // Link shown to B2C/Agent so they can view ad samples (opens in a new tab)
-  adSamplesUrl String?
-
   steps       Step[]
   submissions Submission[]
 }
@@ -95,6 +92,8 @@ model Field {
   allowedTypes Json? // e.g. ["image/png","image/jpeg"]
   width        Int? // required exact width in px, if any
   height       Int? // required exact height in px, if any
+  // FILE: link to a sample/reference image for this specific upload
+  sampleUrl    String?
 
   // Hide this field unless another field's answer matches:
   // { fieldId: string, operator: "equals" | "not_equals", value: string }

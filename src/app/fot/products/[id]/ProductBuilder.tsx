@@ -173,18 +173,6 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
         {savedAt && <span className="text-sm text-mahogany/50">Saved at {savedAt}</span>}
       </div>
 
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium text-mahogany/70 whitespace-nowrap">
-          Ad samples link
-        </label>
-        <input
-          value={draft.adSamplesUrl ?? ""}
-          onChange={(e) => setDraft((d) => ({ ...d, adSamplesUrl: e.target.value }))}
-          placeholder="https://... (shown as a link the agent can click to view sample ads)"
-          className="flex-1 rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
-        />
-      </div>
-
       {draft.steps.map((step, stepIndex) => (
         <div
           key={step.id ?? stepIndex}
@@ -471,6 +459,18 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
                         }
                         placeholder="Any"
                         className="w-20 rounded-md border px-2 py-1"
+                      />
+                    </label>
+                    <label className="flex items-center gap-1 text-sm">
+                      Sample link
+                      <input
+                        type="text"
+                        value={field.sampleUrl ?? ""}
+                        onChange={(e) =>
+                          updateField(stepIndex, fieldIndex, { sampleUrl: e.target.value })
+                        }
+                        placeholder="https://... (optional reference for this upload)"
+                        className="w-40 rounded-md border px-2 py-1"
                       />
                     </label>
                     <div className="min-w-[160px] space-y-1">

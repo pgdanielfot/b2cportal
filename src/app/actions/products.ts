@@ -43,7 +43,7 @@ export async function saveProduct(draft: ProductDraft) {
     async (tx) => {
     await tx.product.update({
       where: { id: draft.id },
-      data: { name: draft.name, adSamplesUrl: draft.adSamplesUrl || null },
+      data: { name: draft.name },
     });
 
     const existingSteps = await tx.step.findMany({
@@ -103,6 +103,7 @@ export async function saveProduct(draft: ProductDraft) {
           allowedTypes: field.type === "FILE" ? field.allowedTypes ?? [] : undefined,
           width: field.type === "FILE" ? field.width ?? null : null,
           height: field.type === "FILE" ? field.height ?? null : null,
+          sampleUrl: field.type === "FILE" ? field.sampleUrl || null : null,
           condition: conditionToJson(field.condition),
         };
 

@@ -28,7 +28,6 @@ export default async function ProductPage({
   const draft: ProductDraft = {
     id: product.id,
     name: product.name,
-    adSamplesUrl: product.adSamplesUrl ?? undefined,
     steps: product.steps.map((s) => ({
       id: s.id,
       title: s.title,
@@ -55,6 +54,7 @@ export default async function ProductPage({
         allowedTypes: (f.allowedTypes as string[] | null) ?? [],
         width: f.width ?? undefined,
         height: f.height ?? undefined,
+        sampleUrl: f.sampleUrl ?? undefined,
         condition: (f.condition as Condition) ?? undefined,
       })),
     })),

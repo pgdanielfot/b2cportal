@@ -22,6 +22,7 @@ type Field = {
   allowedTypes: string[];
   width: number | null;
   height: number | null;
+  sampleUrl?: string;
   condition?: Condition;
 };
 
@@ -40,13 +41,11 @@ type Step = {
 export default function FillWizard({
   token,
   productName,
-  adSamplesUrl,
   steps,
   useBlobUpload,
 }: {
   token: string;
   productName: string;
-  adSamplesUrl?: string;
   steps: Step[];
   useBlobUpload: boolean;
 }) {
@@ -305,9 +304,9 @@ export default function FillWizard({
                     {localizedLabel(field)}
                     {field.required && <span className="text-ignite"> *</span>}
                   </label>
-                  {field.type === "FILE" && adSamplesUrl && (
+                  {field.type === "FILE" && field.sampleUrl && (
                     <a
-                      href={adSamplesUrl}
+                      href={field.sampleUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="shrink-0 text-xs font-medium text-ignite hover:underline"
