@@ -270,19 +270,7 @@ export default function FillWizard({
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-lg font-semibold text-mahogany">{productName}</h1>
-          {adSamplesUrl && (
-            <a
-              href={adSamplesUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 text-sm font-medium text-ignite hover:underline"
-            >
-              {t.viewAdSamples} ↗
-            </a>
-          )}
-        </div>
+        <h1 className="text-lg font-semibold text-mahogany">{productName}</h1>
         <div className="mt-2 flex gap-1">
           {visibleStepIndices.map((_, i) => (
             <div
@@ -312,10 +300,22 @@ export default function FillWizard({
             )}
             {step.fields.map((field) => (
               <div key={field.id} className={fieldVisible(field) ? "space-y-1" : "hidden"}>
-                <label className="text-sm font-medium text-mahogany">
-                  {localizedLabel(field)}
-                  {field.required && <span className="text-ignite"> *</span>}
-                </label>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-sm font-medium text-mahogany">
+                    {localizedLabel(field)}
+                    {field.required && <span className="text-ignite"> *</span>}
+                  </label>
+                  {field.type === "FILE" && adSamplesUrl && (
+                    <a
+                      href={adSamplesUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-xs font-medium text-ignite hover:underline"
+                    >
+                      {t.viewAdSamples} ↗
+                    </a>
+                  )}
+                </div>
 
                 {field.type === "TEXT" && (
                   <>
