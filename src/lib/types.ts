@@ -26,6 +26,9 @@ export type StepDraft = {
   title: string;
   titleMs?: string;
   titleZh?: string;
+  disclaimer?: string;
+  disclaimerMs?: string;
+  disclaimerZh?: string;
   order: number;
   fields: FieldDraft[];
   condition?: Condition;
@@ -34,5 +37,6 @@ export type StepDraft = {
 export type ProductDraft = {
   id: string;
   name: string;
+  adSamplesUrl?: string;
   steps: StepDraft[];
 };

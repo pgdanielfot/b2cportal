@@ -21,6 +21,7 @@ type Dictionary = {
   uploadedFiles: string;
   alreadySubmitted: string;
   alreadySubmittedDesc: string;
+  viewAdSamples: string;
 };
 
 export const translations: Record<Language, Dictionary> = {
@@ -39,6 +40,7 @@ export const translations: Record<Language, Dictionary> = {
     uploadedFiles: "Uploaded files",
     alreadySubmitted: "Already submitted",
     alreadySubmittedDesc: "This form has already been completed.",
+    viewAdSamples: "View ad samples",
   },
   ms: {
     chooseLanguage: "Pilih bahasa anda",
@@ -55,6 +57,7 @@ export const translations: Record<Language, Dictionary> = {
     uploadedFiles: "Fail dimuat naik",
     alreadySubmitted: "Sudah dihantar",
     alreadySubmittedDesc: "Borang ini telah pun lengkap dihantar.",
+    viewAdSamples: "Lihat contoh iklan",
   },
   zh: {
     chooseLanguage: "请选择您的语言",
@@ -71,5 +74,6 @@ export const translations: Record<Language, Dictionary> = {
     uploadedFiles: "已上传的文件",
     alreadySubmitted: "已提交",
     alreadySubmittedDesc: "此表格已完成提交。",
+    viewAdSamples: "查看广告示例",
   },
 };

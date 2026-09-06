@@ -34,16 +34,23 @@ model Product {
   createdBy   FotUser @relation(fields: [createdById], references: [id])
   createdById String
 
+  // Link shown to B2C/Agent so they can view ad samples (opens in a new tab)
+  adSamplesUrl String?
+
   steps       Step[]
   submissions Submission[]
 }
 
 model Step {
-  id        String  @id @default(cuid())
-  title     String
-  titleMs   String? // Bahasa Melayu translation, shown to B2C/Agent if set
-  titleZh   String? // Mandarin translation, shown to B2C/Agent if set
-  order     Int
+  id           String  @id @default(cuid())
+  title        String
+  titleMs      String? // Bahasa Melayu translation, shown to B2C/Agent if set
+  titleZh      String? // Mandarin translation, shown to B2C/Agent if set
+  // Optional notice shown above this step's fields (e.g. a consent disclaimer)
+  disclaimer   String?
+  disclaimerMs String?
+  disclaimerZh String?
+  order        Int
 
   // Skip this step unless another field's answer matches:
   // { fieldId: string, operator: "equals" | "not_equals", value: string }

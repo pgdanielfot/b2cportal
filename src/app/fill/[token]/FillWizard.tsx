@@ -30,6 +30,9 @@ type Step = {
   title: string;
   titleMs?: string;
   titleZh?: string;
+  disclaimer?: string;
+  disclaimerMs?: string;
+  disclaimerZh?: string;
   fields: Field[];
   condition?: Condition;
 };
@@ -37,11 +40,13 @@ type Step = {
 export default function FillWizard({
   token,
   productName,
+  adSamplesUrl,
   steps,
   useBlobUpload,
 }: {
   token: string;
   productName: string;
+  adSamplesUrl?: string;
   steps: Step[];
   useBlobUpload: boolean;
 }) {
@@ -81,6 +86,12 @@ export default function FillWizard({
     if (language === "ms" && step.titleMs) return step.titleMs;
     if (language === "zh" && step.titleZh) return step.titleZh;
     return step.title;
+  }
+
+  function localizedDisclaimer(step: Step): string | undefined {
+    if (language === "ms" && step.disclaimerMs) return step.disclaimerMs;
+    if (language === "zh" && step.disclaimerZh) return step.disclaimerZh;
+    return step.disclaimer;
   }
 
   function handleAnswerChange(fieldId: string, value: string) {
@@ -259,7 +270,19 @@ export default function FillWizard({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-mahogany">{productName}</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg font-semibold text-mahogany">{productName}</h1>
+          {adSamplesUrl && (
+            <a
+              href={adSamplesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 text-sm font-medium text-ignite hover:underline"
+            >
+              {t.viewAdSamples} ↗
+            </a>
+          )}
+        </div>
         <div className="mt-2 flex gap-1">
           {visibleStepIndices.map((_, i) => (
             <div
@@ -282,6 +305,11 @@ export default function FillWizard({
             className={stepIndex === currentStepIndex ? "space-y-4" : "hidden"}
           >
             <h2 className="font-medium text-mahogany">{localizedTitle(step)}</h2>
+            {localizedDisclaimer(step) && (
+              <div className="rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
+                {localizedDisclaimer(step)}
+              </div>
+            )}
             {step.fields.map((field) => (
               <div key={field.id} className={fieldVisible(field) ? "space-y-1" : "hidden"}>
                 <label className="text-sm font-medium text-mahogany">

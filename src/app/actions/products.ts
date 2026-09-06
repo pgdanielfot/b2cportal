@@ -43,7 +43,7 @@ export async function saveProduct(draft: ProductDraft) {
     async (tx) => {
     await tx.product.update({
       where: { id: draft.id },
-      data: { name: draft.name },
+      data: { name: draft.name, adSamplesUrl: draft.adSamplesUrl || null },
     });
 
     const existingSteps = await tx.step.findMany({
@@ -63,6 +63,9 @@ export async function saveProduct(draft: ProductDraft) {
         title: step.title,
         titleMs: step.titleMs || null,
         titleZh: step.titleZh || null,
+        disclaimer: step.disclaimer || null,
+        disclaimerMs: step.disclaimerMs || null,
+        disclaimerZh: step.disclaimerZh || null,
         order: step.order,
         condition: conditionToJson(step.condition),
       };

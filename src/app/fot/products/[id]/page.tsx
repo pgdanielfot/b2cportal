@@ -28,11 +28,15 @@ export default async function ProductPage({
   const draft: ProductDraft = {
     id: product.id,
     name: product.name,
+    adSamplesUrl: product.adSamplesUrl ?? undefined,
     steps: product.steps.map((s) => ({
       id: s.id,
       title: s.title,
       titleMs: s.titleMs ?? undefined,
       titleZh: s.titleZh ?? undefined,
+      disclaimer: s.disclaimer ?? undefined,
+      disclaimerMs: s.disclaimerMs ?? undefined,
+      disclaimerZh: s.disclaimerZh ?? undefined,
       order: s.order,
       condition: (s.condition as Condition) ?? undefined,
       fields: s.fields.map((f) => ({

@@ -36,6 +36,9 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
     title: s.title,
     titleMs: s.titleMs ?? undefined,
     titleZh: s.titleZh ?? undefined,
+    disclaimer: s.disclaimer ?? undefined,
+    disclaimerMs: s.disclaimerMs ?? undefined,
+    disclaimerZh: s.disclaimerZh ?? undefined,
     condition: (s.condition as Condition) ?? undefined,
     fields: s.fields.map((f) => ({
       id: f.id,
@@ -62,6 +65,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
         <FillWizard
           token={token}
           productName={submission.product.name}
+          adSamplesUrl={submission.product.adSamplesUrl ?? undefined}
           steps={steps}
           useBlobUpload={Boolean(process.env.BLOB_READ_WRITE_TOKEN)}
         />

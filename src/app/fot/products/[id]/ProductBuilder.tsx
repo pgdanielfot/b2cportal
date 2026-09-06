@@ -173,6 +173,18 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
         {savedAt && <span className="text-sm text-mahogany/50">Saved at {savedAt}</span>}
       </div>
 
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-medium text-mahogany/70 whitespace-nowrap">
+          Ad samples link
+        </label>
+        <input
+          value={draft.adSamplesUrl ?? ""}
+          onChange={(e) => setDraft((d) => ({ ...d, adSamplesUrl: e.target.value }))}
+          placeholder="https://... (shown as a link the agent can click to view sample ads)"
+          className="flex-1 rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
+        />
+      </div>
+
       {draft.steps.map((step, stepIndex) => (
         <div
           key={step.id ?? stepIndex}
@@ -223,6 +235,33 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
               onChange={(e) => updateStep(stepIndex, { titleZh: e.target.value })}
               placeholder="Title in Mandarin (optional)"
               className="flex-1 min-w-[180px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1 pl-6">
+            <label className="text-xs font-medium text-mahogany/50">
+              Disclaimer shown above this step (optional)
+            </label>
+            <textarea
+              value={step.disclaimer ?? ""}
+              onChange={(e) => updateStep(stepIndex, { disclaimer: e.target.value })}
+              placeholder="Disclaimer in English"
+              rows={2}
+              className="w-full rounded-md border px-2 py-1.5 text-xs focus:border-ignite focus:outline-none"
+            />
+            <textarea
+              value={step.disclaimerMs ?? ""}
+              onChange={(e) => updateStep(stepIndex, { disclaimerMs: e.target.value })}
+              placeholder="Disclaimer in Bahasa Melayu (optional)"
+              rows={2}
+              className="w-full rounded-md border px-2 py-1.5 text-xs focus:border-ignite focus:outline-none"
+            />
+            <textarea
+              value={step.disclaimerZh ?? ""}
+              onChange={(e) => updateStep(stepIndex, { disclaimerZh: e.target.value })}
+              placeholder="Disclaimer in Mandarin (optional)"
+              rows={2}
+              className="w-full rounded-md border px-2 py-1.5 text-xs focus:border-ignite focus:outline-none"
             />
           </div>
 
