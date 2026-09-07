@@ -284,6 +284,15 @@ export default function FillWizard({
       <form
         ref={formRef}
         onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          // All steps share this one <form> (hidden steps stay mounted so their
+          // values persist), so pressing Enter anywhere would otherwise trigger
+          // the browser's native implicit submit instead of just advancing.
+          if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+            e.preventDefault();
+            if (!isLastStep) handleNext();
+          }
+        }}
         className="rounded-lg border border-crystal bg-white p-6 space-y-5"
       >
         <input type="hidden" name="__language" value={language ?? "en"} />
