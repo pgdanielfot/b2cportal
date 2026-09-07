@@ -11,6 +11,7 @@ type Dictionary = {
   chooseLanguageHint: string;
   back: string;
   next: string;
+  proceed: string;
   submit: string;
   submitting: string;
   uploading: string;
@@ -30,6 +31,7 @@ export const translations: Record<Language, Dictionary> = {
     chooseLanguageHint: "Pilih bahasa anda · 请选择您的语言",
     back: "Back",
     next: "Next",
+    proceed: "Proceed",
     submit: "Submit",
     submitting: "Submitting...",
     uploading: "Uploading...",
@@ -47,6 +49,7 @@ export const translations: Record<Language, Dictionary> = {
     chooseLanguageHint: "Choose your language · 请选择您的语言",
     back: "Kembali",
     next: "Seterusnya",
+    proceed: "Teruskan",
     submit: "Hantar",
     submitting: "Menghantar...",
     uploading: "Memuat naik...",
@@ -64,6 +67,7 @@ export const translations: Record<Language, Dictionary> = {
     chooseLanguageHint: "Choose your language · Pilih bahasa anda",
     back: "上一步",
     next: "下一步",
+    proceed: "继续",
     submit: "提交",
     submitting: "提交中...",
     uploading: "上传中...",

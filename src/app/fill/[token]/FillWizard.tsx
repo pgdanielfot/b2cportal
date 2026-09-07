@@ -94,6 +94,10 @@ export default function FillWizard({
     return step.disclaimer;
   }
 
+  function disclaimerVisible(step: Step): boolean {
+    return !!localizedDisclaimer(step) && isConditionMet(step.disclaimerCondition ?? null, answers);
+  }
+
   function handleAnswerChange(fieldId: string, value: string) {
     setAnswers((prev) => ({ ...prev, [fieldId]: value }));
   }
@@ -302,8 +306,7 @@ export default function FillWizard({
             className={stepIndex === currentStepIndex ? "space-y-4" : "hidden"}
           >
             <h2 className="font-medium text-mahogany">{localizedTitle(step)}</h2>
-            {localizedDisclaimer(step) &&
-              isConditionMet(step.disclaimerCondition ?? null, answers) && (
+            {disclaimerVisible(step) && (
               <div className="rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
                 {localizedDisclaimer(step)}
               </div>
@@ -430,7 +433,13 @@ export default function FillWizard({
               disabled={isPending || isUploading}
               className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
             >
-              {isUploading ? t.uploading : isPending ? t.submitting : t.submit}
+              {isUploading
+                ? t.uploading
+                : isPending
+                  ? t.submitting
+                  : disclaimerVisible(steps[currentStepIndex])
+                    ? t.proceed
+                    : t.submit}
             </button>
           ) : (
             <button
@@ -439,7 +448,11 @@ export default function FillWizard({
               disabled={isUploading}
               className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
             >
-              {isUploading ? t.uploading : t.next}
+              {isUploading
+                ? t.uploading
+                : disclaimerVisible(steps[currentStepIndex])
+                  ? t.proceed
+                  : t.next}
             </button>
           )}
         </div>
