@@ -23,6 +23,7 @@ type Dictionary = {
   alreadySubmitted: string;
   alreadySubmittedDesc: string;
   viewAdSamples: string;
+  disclaimerAgree: string;
 };
 
 export const translations: Record<Language, Dictionary> = {
@@ -43,6 +44,7 @@ export const translations: Record<Language, Dictionary> = {
     alreadySubmitted: "Already submitted",
     alreadySubmittedDesc: "This form has already been completed.",
     viewAdSamples: "View ad samples",
+    disclaimerAgree: "I have read and agree to the above.",
   },
   ms: {
     chooseLanguage: "Pilih bahasa anda",
@@ -61,6 +63,7 @@ export const translations: Record<Language, Dictionary> = {
     alreadySubmitted: "Sudah dihantar",
     alreadySubmittedDesc: "Borang ini telah pun lengkap dihantar.",
     viewAdSamples: "Lihat contoh iklan",
+    disclaimerAgree: "Saya telah membaca dan bersetuju dengan perkara di atas.",
   },
   zh: {
     chooseLanguage: "请选择您的语言",
@@ -79,5 +82,6 @@ export const translations: Record<Language, Dictionary> = {
     alreadySubmitted: "已提交",
     alreadySubmittedDesc: "此表格已完成提交。",
     viewAdSamples: "查看广告示例",
+    disclaimerAgree: "我已阅读并同意以上内容。",
   },
 };

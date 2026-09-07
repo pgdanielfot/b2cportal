@@ -57,6 +57,7 @@ export default function FillWizard({
   const [done, setDone] = useState(false);
   const [charCounts, setCharCounts] = useState<Record<string, number>>({});
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [agreedDisclaimers, setAgreedDisclaimers] = useState<Set<string>>(new Set());
   const [uploadingFields, setUploadingFields] = useState<Set<string>>(new Set());
   const [uploadedSummary, setUploadedSummary] = useState<
     { label: string; files: { name: string; url: string; type: string }[] }[]
@@ -96,6 +97,13 @@ export default function FillWizard({
 
   function disclaimerVisible(step: Step): boolean {
     return !!localizedDisclaimer(step) && isConditionMet(step.disclaimerCondition ?? null, answers);
+  }
+
+  // A visible disclaimer must be explicitly acknowledged before the agent can
+  // proceed — this also stops a stray double-click on the (now-relabeled)
+  // button from finishing the submission the instant this step appears.
+  function disclaimerBlocking(step: Step): boolean {
+    return disclaimerVisible(step) && !agreedDisclaimers.has(step.id);
   }
 
   function handleAnswerChange(fieldId: string, value: string) {
@@ -160,6 +168,8 @@ export default function FillWizard({
   }
 
   function handleNext() {
+    if (disclaimerBlocking(steps[currentStepIndex])) return;
+
     const validationError = validateStep(currentStepIndex);
     if (validationError) {
       setError(validationError);
@@ -171,6 +181,8 @@ export default function FillWizard({
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (disclaimerBlocking(steps[currentStepIndex])) return;
 
     const validationError = validateStep(currentStepIndex);
     if (validationError) {
@@ -307,8 +319,24 @@ export default function FillWizard({
           >
             <h2 className="font-medium text-mahogany">{localizedTitle(step)}</h2>
             {disclaimerVisible(step) && (
-              <div className="rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
-                {localizedDisclaimer(step)}
+              <div className="space-y-2 rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
+                <p>{localizedDisclaimer(step)}</p>
+                <label className="flex items-center gap-2 text-sm font-medium text-mahogany">
+                  <input
+                    type="checkbox"
+                    checked={agreedDisclaimers.has(step.id)}
+                    onChange={(e) => {
+                      setError(null);
+                      setAgreedDisclaimers((prev) => {
+                        const next = new Set(prev);
+                        if (e.target.checked) next.add(step.id);
+                        else next.delete(step.id);
+                        return next;
+                      });
+                    }}
+                  />
+                  {t.disclaimerAgree}
+                </label>
               </div>
             )}
             {step.fields.map((field) => (
@@ -430,7 +458,7 @@ export default function FillWizard({
           {isLastStep ? (
             <button
               type="submit"
-              disabled={isPending || isUploading}
+              disabled={isPending || isUploading || disclaimerBlocking(steps[currentStepIndex])}
               className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
             >
               {isUploading
@@ -445,7 +473,7 @@ export default function FillWizard({
             <button
               type="button"
               onClick={handleNext}
-              disabled={isUploading}
+              disabled={isUploading || disclaimerBlocking(steps[currentStepIndex])}
               className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
             >
               {isUploading
