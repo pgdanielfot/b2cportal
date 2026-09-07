@@ -8,6 +8,9 @@ import { saveUploadedFile } from "@/lib/files";
 import { imageSize } from "image-size";
 import { formatLabels } from "@/lib/fileFormats";
 import { isConditionMet, type Condition } from "@/lib/conditions";
+import { minLeadDateString } from "@/lib/dates";
+
+const MIN_LEAD_WORKING_DAYS = 7;
 
 async function requireFotUser() {
   const session = await auth();
@@ -210,6 +213,13 @@ export async function submitFillForm(
         } catch {
           return { ok: false, error: `"${resolveLabel(field)}" must be a valid URL.` };
         }
+      }
+
+      if (field.type === "DATE" && value < minLeadDateString(MIN_LEAD_WORKING_DAYS)) {
+        return {
+          ok: false,
+          error: `"${resolveLabel(field)}" must be at least ${MIN_LEAD_WORKING_DAYS} working days from today.`,
+        };
       }
 
       await prisma.fieldValue.upsert({

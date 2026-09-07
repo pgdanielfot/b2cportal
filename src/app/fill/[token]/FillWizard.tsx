@@ -6,6 +6,9 @@ import FileFieldInput from "./FileFieldInput";
 import ImageThumbnail from "./ImageThumbnail";
 import { isConditionMet, type Condition } from "@/lib/conditions";
 import { LANGUAGES, translations, type Language } from "@/lib/i18n";
+import { minLeadDateString } from "@/lib/dates";
+
+const MIN_LEAD_WORKING_DAYS = 7;
 
 type Field = {
   id: string;
@@ -161,6 +164,10 @@ export default function FillWizard({
         } catch {
           return `"${localizedLabel(field)}" must be a valid URL.`;
         }
+      }
+
+      if (field.type === "DATE" && value < minLeadDateString(MIN_LEAD_WORKING_DAYS)) {
+        return `"${localizedLabel(field)}" must be at least ${MIN_LEAD_WORKING_DAYS} working days from today.`;
       }
     }
 
@@ -409,6 +416,7 @@ export default function FillWizard({
                   <input
                     type="date"
                     name={field.id}
+                    min={minLeadDateString(MIN_LEAD_WORKING_DAYS)}
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
                   />
