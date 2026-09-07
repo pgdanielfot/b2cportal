@@ -455,9 +455,12 @@ export default function FillWizard({
             type="button"
             onClick={() => {
               setError(null);
-              setVisiblePosition((p) => Math.max(0, p - 1));
+              if (visiblePosition === 0) {
+                setLanguage(null);
+              } else {
+                setVisiblePosition((p) => Math.max(0, p - 1));
+              }
             }}
-            disabled={visiblePosition === 0}
             className="rounded-md border border-crystal px-4 py-2 text-sm font-medium text-mahogany disabled:opacity-40"
           >
             {t.back}
