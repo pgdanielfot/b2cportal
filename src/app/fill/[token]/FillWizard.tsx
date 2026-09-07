@@ -34,6 +34,7 @@ type Step = {
   disclaimer?: string;
   disclaimerMs?: string;
   disclaimerZh?: string;
+  disclaimerCondition?: Condition;
   fields: Field[];
   condition?: Condition;
 };
@@ -292,7 +293,8 @@ export default function FillWizard({
             className={stepIndex === currentStepIndex ? "space-y-4" : "hidden"}
           >
             <h2 className="font-medium text-mahogany">{localizedTitle(step)}</h2>
-            {localizedDisclaimer(step) && (
+            {localizedDisclaimer(step) &&
+              isConditionMet(step.disclaimerCondition ?? null, answers) && (
               <div className="rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
                 {localizedDisclaimer(step)}
               </div>

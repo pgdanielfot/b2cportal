@@ -66,6 +66,7 @@ export async function saveProduct(draft: ProductDraft) {
         disclaimer: step.disclaimer || null,
         disclaimerMs: step.disclaimerMs || null,
         disclaimerZh: step.disclaimerZh || null,
+        disclaimerCondition: conditionToJson(step.disclaimerCondition),
         order: step.order,
         condition: conditionToJson(step.condition),
       };

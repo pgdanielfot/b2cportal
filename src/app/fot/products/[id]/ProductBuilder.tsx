@@ -251,6 +251,12 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
               rows={2}
               className="w-full rounded-md border px-2 py-1.5 text-xs focus:border-ignite focus:outline-none"
             />
+            <ConditionEditor
+              condition={step.disclaimerCondition}
+              candidateFields={savedFieldsExcept((si) => si === stepIndex)}
+              onChange={(disclaimerCondition) => updateStep(stepIndex, { disclaimerCondition })}
+              label="Only show this disclaimer if a specific answer is chosen"
+            />
           </div>
 
           <ConditionEditor

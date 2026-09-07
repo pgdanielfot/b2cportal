@@ -39,6 +39,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
     disclaimer: s.disclaimer ?? undefined,
     disclaimerMs: s.disclaimerMs ?? undefined,
     disclaimerZh: s.disclaimerZh ?? undefined,
+    disclaimerCondition: (s.disclaimerCondition as Condition) ?? undefined,
     condition: (s.condition as Condition) ?? undefined,
     fields: s.fields.map((f) => ({
       id: f.id,

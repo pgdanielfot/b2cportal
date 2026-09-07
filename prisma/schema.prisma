@@ -53,6 +53,10 @@ model Step {
   // { fieldId: string, operator: "equals" | "not_equals", value: string }
   condition Json?
 
+  // Show the disclaimer only when a specific answer is chosen (independent of
+  // the step's own condition above). Same shape as `condition`.
+  disclaimerCondition Json?
+
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
 

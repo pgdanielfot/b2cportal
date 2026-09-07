@@ -14,10 +14,12 @@ export default function ConditionEditor({
   condition,
   candidateFields,
   onChange,
+  label = "Only show if another answer matches",
 }: {
   condition: Condition | undefined;
   candidateFields: CandidateField[];
   onChange: (condition: Condition | undefined) => void;
+  label?: string;
 }) {
   const selectedField = candidateFields.find((f) => f.id === condition?.fieldId);
 
@@ -39,7 +41,7 @@ export default function ConditionEditor({
             )
           }
         />
-        Only show if another answer matches
+        {label}
       </label>
 
       {condition && (

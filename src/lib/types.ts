@@ -30,6 +30,7 @@ export type StepDraft = {
   disclaimer?: string;
   disclaimerMs?: string;
   disclaimerZh?: string;
+  disclaimerCondition?: Condition;
   order: number;
   fields: FieldDraft[];
   condition?: Condition;

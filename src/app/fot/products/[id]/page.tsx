@@ -36,6 +36,7 @@ export default async function ProductPage({
       disclaimer: s.disclaimer ?? undefined,
       disclaimerMs: s.disclaimerMs ?? undefined,
       disclaimerZh: s.disclaimerZh ?? undefined,
+      disclaimerCondition: (s.disclaimerCondition as Condition) ?? undefined,
       order: s.order,
       condition: (s.condition as Condition) ?? undefined,
       fields: s.fields.map((f) => ({
