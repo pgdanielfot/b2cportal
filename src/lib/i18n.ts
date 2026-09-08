@@ -44,7 +44,7 @@ export const translations: Record<Language, Dictionary> = {
     alreadySubmitted: "Already submitted",
     alreadySubmittedDesc: "This form has already been completed.",
     viewAdSamples: "View ad samples",
-    disclaimerAgree: "I have read and agree to the above.",
+    disclaimerAgree: "I have read and agreed to the above.",
   },
   ms: {
     chooseLanguage: "Pilih bahasa anda",
