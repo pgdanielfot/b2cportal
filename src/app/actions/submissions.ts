@@ -21,8 +21,8 @@ async function requireFotUser() {
 export async function createSubmissionLink(productId: string, soNumber: string) {
   const userId = await requireFotUser();
 
-  if (!/^\d{5}$/.test(soNumber)) {
-    throw new Error("SO number must be exactly 5 digits.");
+  if (!/^\d{6}$/.test(soNumber)) {
+    throw new Error("SO number must be exactly 6 digits.");
   }
 
   const submission = await prisma.submission.create({

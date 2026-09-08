@@ -63,8 +63,8 @@ export default function SubmissionsPanel({
 
       <form
         action={async () => {
-          if (!/^\d{5}$/.test(soNumber)) {
-            setSoError("SO number must be exactly 5 digits.");
+          if (!/^\d{6}$/.test(soNumber)) {
+            setSoError("SO number must be exactly 6 digits.");
             return;
           }
           setSoError(null);
@@ -81,11 +81,11 @@ export default function SubmissionsPanel({
               name="soNumber"
               required
               value={soNumber}
-              onChange={(e) => setSoNumber(e.target.value.replace(/\D/g, "").slice(0, 5))}
+              onChange={(e) => setSoNumber(e.target.value.replace(/\D/g, "").slice(0, 6))}
               inputMode="numeric"
-              pattern="\d{5}"
-              maxLength={5}
-              placeholder="12345"
+              pattern="\d{6}"
+              maxLength={6}
+              placeholder="100023"
               className="flex-1 border-l px-3 py-2 text-sm focus:outline-none"
             />
           </div>
