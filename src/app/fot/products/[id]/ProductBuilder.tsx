@@ -5,6 +5,7 @@ import { saveProduct } from "@/app/actions/products";
 import type { ProductDraft, StepDraft, FieldDraft, FieldTypeValue } from "@/lib/types";
 import { FILE_FORMAT_OPTIONS } from "@/lib/fileFormats";
 import ConditionEditor from "./ConditionEditor";
+import DisclaimerImageUpload from "./DisclaimerImageUpload";
 
 const FIELD_TYPES: { value: FieldTypeValue; label: string }[] = [
   { value: "TEXT", label: "Text box" },
@@ -250,6 +251,10 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
               placeholder="Disclaimer in Mandarin (optional)"
               rows={2}
               className="w-full rounded-md border px-2 py-1.5 text-xs focus:border-ignite focus:outline-none"
+            />
+            <DisclaimerImageUpload
+              value={step.disclaimerImage}
+              onChange={(disclaimerImage) => updateStep(stepIndex, { disclaimerImage })}
             />
             <ConditionEditor
               condition={step.disclaimerCondition}

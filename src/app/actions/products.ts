@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { ProductDraft } from "@/lib/types";
 import type { Condition } from "@/lib/conditions";
+import { saveUploadedFile } from "@/lib/files";
 
 function conditionToJson(condition: Condition | undefined) {
   return condition ? condition : Prisma.JsonNull;
@@ -66,6 +67,7 @@ export async function saveProduct(draft: ProductDraft) {
         disclaimer: step.disclaimer || null,
         disclaimerMs: step.disclaimerMs || null,
         disclaimerZh: step.disclaimerZh || null,
+        disclaimerImage: step.disclaimerImage || null,
         disclaimerCondition: conditionToJson(step.disclaimerCondition),
         order: step.order,
         condition: conditionToJson(step.condition),
@@ -120,6 +122,29 @@ export async function saveProduct(draft: ProductDraft) {
   );
 
   revalidatePath(`/fot/products/${draft.id}`);
+}
+
+export async function uploadDisclaimerImage(
+  formData: FormData,
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  await requireFotUser();
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, error: "No file provided." };
+  }
+
+  if (!file.type.startsWith("image/")) {
+    return { ok: false, error: "Please upload an image file." };
+  }
+
+  const maxSizeMb = 10;
+  if (file.size > maxSizeMb * 1024 * 1024) {
+    return { ok: false, error: `Image exceeds ${maxSizeMb}MB limit.` };
+  }
+
+  const saved = await saveUploadedFile("disclaimer-images", file);
+  return { ok: true, url: saved.url };
 }
 
 export async function deleteProduct(productId: string) {

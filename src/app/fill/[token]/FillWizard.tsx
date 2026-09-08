@@ -37,6 +37,7 @@ type Step = {
   disclaimer?: string;
   disclaimerMs?: string;
   disclaimerZh?: string;
+  disclaimerImage?: string;
   disclaimerCondition?: Condition;
   fields: Field[];
   condition?: Condition;
@@ -328,6 +329,14 @@ export default function FillWizard({
             {disclaimerVisible(step) && (
               <div className="space-y-2 rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
                 <p>{localizedDisclaimer(step)}</p>
+                {step.disclaimerImage && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={step.disclaimerImage}
+                    alt=""
+                    className="max-h-64 w-auto rounded-md border border-crystal"
+                  />
+                )}
                 <label className="flex items-center gap-2 text-sm font-medium text-mahogany">
                   <input
                     type="checkbox"

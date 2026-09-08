@@ -7,12 +7,16 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ submissionId: string; fileName: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
-
   const { submissionId, fileName } = await params;
+
+  // Disclaimer images are FOT-authored content meant to be shown publicly on
+  // the fill wizard, unlike agent-submitted files (which stay auth-gated).
+  if (submissionId !== "disclaimer-images") {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+  }
 
   if (submissionId.includes("..") || fileName.includes("..")) {
     return new NextResponse("Invalid path", { status: 400 });

@@ -44,10 +44,11 @@ model Step {
   titleMs      String? // Bahasa Melayu translation, shown to B2C/Agent if set
   titleZh      String? // Mandarin translation, shown to B2C/Agent if set
   // Optional notice shown above this step's fields (e.g. a consent disclaimer)
-  disclaimer   String?
-  disclaimerMs String?
-  disclaimerZh String?
-  order        Int
+  disclaimer      String?
+  disclaimerMs    String?
+  disclaimerZh    String?
+  disclaimerImage String? // Optional reference image shown alongside the disclaimer
+  order           Int
 
   // Skip this step unless another field's answer matches:
   // { fieldId: string, operator: "equals" | "not_equals", value: string }
