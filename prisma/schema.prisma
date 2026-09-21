@@ -21,6 +21,7 @@ model FotUser {
 
   products    Product[]
   submissions Submission[]
+  campaigns   Campaign[]
 }
 
 // ---------- Product / form template ----------
@@ -36,6 +37,7 @@ model Product {
 
   steps       Step[]
   submissions Submission[]
+  campaigns   Campaign[]
 }
 
 model Step {
@@ -119,6 +121,28 @@ enum SubmissionStatus {
   SUBMITTED
 }
 
+// One SO can require several independent campaign submissions. Each card on
+// the agent dashboard is still a normal Submission, so it uses the same form,
+// field validation, file upload, language and branching workflow.
+model Campaign {
+  id         String   @id @default(cuid())
+  shareToken String   @unique @default(cuid())
+  soNumber   String
+  quantity   Int
+  createdAt  DateTime @default(now())
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+
+  createdBy   FotUser @relation(fields: [createdById], references: [id])
+  createdById String
+
+  submissions Submission[]
+
+  @@index([productId])
+  @@index([soNumber])
+}
+
 model Submission {
   id          String           @id @default(cuid())
   shareToken  String           @unique @default(cuid())
@@ -131,6 +155,11 @@ model Submission {
   product   Product @relation(fields: [productId], references: [id])
   productId String
 
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId String?
+  // The human-friendly card number within its campaign, starting from 1.
+  campaignSequence Int?
+
   createdBy   FotUser @relation(fields: [createdById], references: [id])
   createdById String
 
@@ -138,6 +167,8 @@ model Submission {
 
   @@index([productId])
   @@index([soNumber])
+  @@index([campaignId])
+  @@unique([campaignId, campaignSequence])
 }
 
 model FieldValue {

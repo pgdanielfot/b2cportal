@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { submitFillForm } from "@/app/actions/submissions";
 import FileFieldInput from "./FileFieldInput";
 import ImageThumbnail from "./ImageThumbnail";
+import LiveAdPreview, { type Media } from "./LiveAdPreview";
 import { isConditionMet, type Condition } from "@/lib/conditions";
 import { LANGUAGES, translations, type Language } from "@/lib/i18n";
 import { minLeadDateString } from "@/lib/dates";
@@ -46,11 +47,13 @@ type Step = {
 export default function FillWizard({
   token,
   productName,
+  campaignUrl,
   steps,
   useBlobUpload,
 }: {
   token: string;
   productName: string;
+  campaignUrl?: string;
   steps: Step[];
   useBlobUpload: boolean;
 }) {
@@ -66,10 +69,21 @@ export default function FillWizard({
   const [uploadedSummary, setUploadedSummary] = useState<
     { label: string; files: { name: string; url: string; type: string }[] }[]
   >([]);
+  const [previewMedia, setPreviewMedia] = useState<Record<string, Media | undefined>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
   const t = translations[language ?? "en"];
   const isUploading = uploadingFields.size > 0;
+  const platformField = steps.flatMap((step) => step.fields).find((field) => /platform/i.test(field.label));
+  const platformAnswer = platformField ? answers[platformField.id] : undefined;
+  const placementPlatform = platformAnswer === "Facebook" || platformAnswer === "Instagram" ? platformAnswer : undefined;
+  const captionField = steps.flatMap((step) => step.fields).find((field) => /caption/i.test(field.label));
+  const ctaField = steps.flatMap((step) => step.fields).find((field) => /call.?to.?action|\bcta\b/i.test(field.label));
+  const mediaEntries = Object.entries(previewMedia);
+  const feedMedia = mediaEntries.find(([fieldId, media]) => Boolean(media) && /feed/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1]
+    ?? mediaEntries.find(([fieldId, media]) => Boolean(media) && !/story/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1];
+  const storyImage = mediaEntries.find(([fieldId, media]) => Boolean(media) && /story/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? "") && !/video/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1];
+  const storyVideo = mediaEntries.find(([fieldId, media]) => Boolean(media) && /story/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? "") && /video/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1];
 
   const visibleStepIndices = steps
     .map((s, i) => i)
@@ -121,6 +135,10 @@ export default function FillWizard({
       else next.delete(fieldId);
       return next;
     });
+  }
+
+  function handlePreviewMediaChange(fieldId: string, media?: Media) {
+    setPreviewMedia((current) => ({ ...current, [fieldId]: media }));
   }
 
   function validateStep(stepIndex: number): string | null {
@@ -261,6 +279,14 @@ export default function FillWizard({
           <p className="text-2xl">✅</p>
           <h1 className="text-lg font-semibold text-mahogany">{t.thankYou}</h1>
           <p className="text-sm text-mahogany/60">{t.submissionReceived}</p>
+          {campaignUrl && (
+            <a
+              href={campaignUrl}
+              className="mt-4 inline-block rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover"
+            >
+              Back to all campaigns
+            </a>
+          )}
         </div>
 
         {uploadedSummary.length > 0 && (
@@ -305,6 +331,7 @@ export default function FillWizard({
         </div>
       </div>
 
+      <div className={placementPlatform ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-start" : ""}>
       <form
         ref={formRef}
         onSubmit={handleSubmit}
@@ -450,6 +477,7 @@ export default function FillWizard({
                     token={token}
                     useBlobUpload={useBlobUpload}
                     onUploadingChange={handleUploadingChange}
+                    onPreviewMediaChange={handlePreviewMediaChange}
                   />
                 )}
               </div>
@@ -505,6 +533,19 @@ export default function FillWizard({
           )}
         </div>
       </form>
+      {placementPlatform && (
+        <aside className="lg:sticky lg:top-6">
+          <LiveAdPreview
+            platform={placementPlatform}
+            feedMedia={feedMedia}
+            storyImage={storyImage}
+            storyVideo={storyVideo}
+            caption={captionField ? answers[captionField.id] : undefined}
+            cta={ctaField ? answers[ctaField.id] : undefined}
+          />
+        </aside>
+      )}
+      </div>
     </div>
   );
 }

@@ -9,6 +9,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
   const submission = await prisma.submission.findUnique({
     where: { shareToken: token },
     include: {
+      campaign: { select: { shareToken: true } },
       product: {
         include: { steps: { orderBy: { order: "asc" }, include: { fields: { orderBy: { order: "asc" } } } } },
       },
@@ -64,10 +65,11 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
 
   return (
     <div className="min-h-screen bg-crystal-soft">
-      <div className="mx-auto max-w-xl px-6 py-12">
+      <div className="mx-auto max-w-6xl px-6 py-12">
         <FillWizard
           token={token}
           productName={submission.product.name}
+          campaignUrl={submission.campaign ? `/campaign/${submission.campaign.shareToken}` : undefined}
           steps={steps}
           useBlobUpload={Boolean(process.env.BLOB_READ_WRITE_TOKEN)}
         />

@@ -40,11 +40,13 @@ export default function FileFieldInput({
   token,
   useBlobUpload,
   onUploadingChange,
+  onPreviewMediaChange,
 }: {
   field: Field;
   token: string;
   useBlobUpload: boolean;
   onUploadingChange?: (fieldId: string, uploading: boolean) => void;
+  onPreviewMediaChange?: (fieldId: string, media?: { url: string; type: string }) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [formatError, setFormatError] = useState<string | null>(null);
@@ -68,6 +70,8 @@ export default function FileFieldInput({
     const next = files.map((f) => ({ name: f.name, url: URL.createObjectURL(f), type: f.type }));
     objectUrls.current = next.map((p) => p.url);
     setPreviews(next);
+    const preview = next.find((item) => item.type.startsWith("image/") || item.type.startsWith("video/"));
+    onPreviewMediaChange?.(field.id, preview ? { url: preview.url, type: preview.type } : undefined);
   }
 
   async function syncReadyFiles(files: File[]) {
@@ -199,6 +203,7 @@ export default function FileFieldInput({
 
   return (
     <>
+      <div className="space-y-3">
       <input
         ref={inputRef}
         type="file"
@@ -299,6 +304,7 @@ export default function FileFieldInput({
           </div>
         ),
       )}
+      </div>
 
       {manualCropTarget && field.width && field.height && (
         <ManualCropModal

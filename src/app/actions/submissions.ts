@@ -15,21 +15,54 @@ const MIN_LEAD_WORKING_DAYS = 7;
 async function requireFotUser() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Not authenticated");
-  return session.user.id;
+
+  const existing = await prisma.fotUser.findUnique({ where: { id: session.user.id } });
+  if (existing) return existing.id;
+
+  // Local development uses its own database, while the browser can retain a
+  // signed-in FOT session from the normal portal. Mirror that known local
+  // session user here so campaign testing does not fail on a foreign key.
+  if (process.env.DATABASE_URL?.includes("localhost:51214")) {
+    const email = session.user.email || `local-${session.user.id}@example.test`;
+    const byEmail = await prisma.fotUser.findUnique({ where: { email } });
+    if (byEmail) return byEmail.id;
+    const localUser = await prisma.fotUser.create({
+      data: { id: session.user.id, email, name: session.user.name || "Local FOT User", passwordHash: "local-session-only" },
+    });
+    return localUser.id;
+  }
+
+  throw new Error("Your FOT account could not be found.");
 }
 
-export async function createSubmissionLink(productId: string, soNumber: string) {
+export async function createCampaignLink(productId: string, soNumber: string, quantity: number) {
   const userId = await requireFotUser();
 
   if (!/^\d{5,6}$/.test(soNumber)) {
     throw new Error("SO number must be 5 or 6 digits.");
   }
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
+    throw new Error("Campaign quantity must be between 1 and 20.");
+  }
 
-  const submission = await prisma.submission.create({
-    data: { productId, soNumber, createdById: userId },
+  const campaign = await prisma.campaign.create({
+    data: {
+      productId,
+      soNumber,
+      quantity,
+      createdById: userId,
+      submissions: {
+        create: Array.from({ length: quantity }, (_, index) => ({
+          productId,
+          soNumber,
+          createdById: userId,
+          campaignSequence: index + 1,
+        })),
+      },
+    },
   });
 
-  redirect(`/fot/products/${productId}?created=${submission.shareToken}`);
+  redirect(`/fot/products/${productId}?createdCampaign=${campaign.shareToken}`);
 }
 
 export async function deleteSubmission(submissionId: string, productId: string) {
