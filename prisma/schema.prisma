@@ -129,6 +129,9 @@ model Campaign {
   shareToken String   @unique @default(cuid())
   soNumber   String
   quantity   Int
+  language   String?
+  agentName  String?
+  agentId    String?
   createdAt  DateTime @default(now())
 
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)

@@ -9,7 +9,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
   const submission = await prisma.submission.findUnique({
     where: { shareToken: token },
     include: {
-      campaign: { select: { shareToken: true } },
+      campaign: { select: { shareToken: true, language: true, agentName: true, agentId: true } },
       product: {
         include: { steps: { orderBy: { order: "asc" }, include: { fields: { orderBy: { order: "asc" } } } } },
       },
@@ -70,6 +70,11 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
           token={token}
           productName={submission.product.name}
           campaignUrl={submission.campaign ? `/campaign/${submission.campaign.shareToken}` : undefined}
+          initialLanguage={(submission.campaign?.language as "en" | "ms" | "zh" | null) ?? undefined}
+          initialAnswers={Object.fromEntries([
+            ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /full name/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentName ?? ""]),
+            ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /agent id/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentId ?? ""]),
+          ])}
           steps={steps}
           useBlobUpload={Boolean(process.env.BLOB_READ_WRITE_TOKEN)}
         />

@@ -85,6 +85,17 @@ export async function setSubmissionArchived(submissionId: string, archived: bool
 
 export type SubmitFormResult = { ok: true } | { ok: false; error: string };
 
+export async function saveCampaignIntake(token: string, language: string, agentName: string, agentId: string) {
+  if (!["en", "ms", "zh"].includes(language) || !agentName.trim() || !agentId.trim()) {
+    return { ok: false as const, error: "Please complete your language and personal information." };
+  }
+  const campaign = await prisma.campaign.findUnique({ where: { shareToken: token } });
+  if (!campaign) return { ok: false as const, error: "This campaign link is invalid." };
+  await prisma.campaign.update({ where: { id: campaign.id }, data: { language, agentName: agentName.trim(), agentId: agentId.trim() } });
+  revalidatePath(`/campaign/${token}`);
+  return { ok: true as const };
+}
+
 export async function submitFillForm(
   token: string,
   formData: FormData,

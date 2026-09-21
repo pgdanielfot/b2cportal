@@ -48,22 +48,26 @@ export default function FillWizard({
   token,
   productName,
   campaignUrl,
+  initialLanguage,
+  initialAnswers,
   steps,
   useBlobUpload,
 }: {
   token: string;
   productName: string;
   campaignUrl?: string;
+  initialLanguage?: Language;
+  initialAnswers?: Record<string, string>;
   steps: Step[];
   useBlobUpload: boolean;
 }) {
-  const [language, setLanguage] = useState<Language | null>(null);
+  const [language, setLanguage] = useState<Language | null>(initialLanguage ?? null);
   const [visiblePosition, setVisiblePosition] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [charCounts, setCharCounts] = useState<Record<string, number>>({});
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers ?? {});
   const [agreedDisclaimers, setAgreedDisclaimers] = useState<Set<string>>(new Set());
   const [uploadingFields, setUploadingFields] = useState<Set<string>>(new Set());
   const [uploadedSummary, setUploadedSummary] = useState<
@@ -405,6 +409,7 @@ export default function FillWizard({
                   <>
                     <input
                       name={field.id}
+                      defaultValue={answers[field.id] ?? ""}
                       maxLength={field.maxLength ?? undefined}
                       onChange={(e) => {
                         setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }));
@@ -423,6 +428,7 @@ export default function FillWizard({
                   <>
                     <textarea
                       name={field.id}
+                      defaultValue={answers[field.id] ?? ""}
                       rows={6}
                       maxLength={field.maxLength ?? undefined}
                       onChange={(e) => {
@@ -443,6 +449,7 @@ export default function FillWizard({
                   <input
                     type="url"
                     name={field.id}
+                    defaultValue={answers[field.id] ?? ""}
                     placeholder="https://example.com"
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
@@ -460,6 +467,7 @@ export default function FillWizard({
                 {field.type === "DROPDOWN" && (
                   <select
                     name={field.id}
+                    defaultValue={answers[field.id] ?? ""}
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm"
                   >

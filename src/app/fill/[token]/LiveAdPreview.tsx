@@ -59,7 +59,7 @@ function Creative({ media, ratio, full = false }: { media?: Media; ratio: string
   return <div className={`relative flex items-center justify-center overflow-hidden bg-[#e8eff9] ${full ? "h-full" : ""}`} style={full ? undefined : { aspectRatio: ratio }}>
     {media ? <>
       {/* Object URLs from the local upload input cannot use next/image. */}
-      {media.type.startsWith("video/") ? <video src={media.url} className="h-full w-full object-cover" controls muted playsInline /> : <>
+      {media.type.startsWith("video/") ? <video src={media.url} className="h-full w-full object-cover" controls autoPlay loop muted playsInline preload="metadata" /> : <>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={media.url} alt="Uploaded ad creative preview" className="h-full w-full object-cover" />
       </>}

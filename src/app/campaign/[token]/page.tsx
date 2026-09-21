@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import SubmissionMediaSummary from "./SubmissionMediaSummary";
+import CampaignIntake from "./CampaignIntake";
 
 type StoredFile = { url: string; name: string; type: string };
 
@@ -18,6 +19,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ token
     },
   });
   if (!campaign) notFound();
+  if (!campaign.language || !campaign.agentName || !campaign.agentId) return <CampaignIntake token={token} />;
 
   const completed = campaign.submissions.filter((submission) => submission.status === "SUBMITTED").length;
   const inProgress = campaign.submissions.filter((submission) => submission.status === "PENDING").length;
