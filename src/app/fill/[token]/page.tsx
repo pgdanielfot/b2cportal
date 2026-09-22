@@ -23,7 +23,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
   if (submission.status === "SUBMITTED") {
     const reviewSteps = submission.product.steps.map((step) => ({ id: step.id, title: step.title, fields: step.fields.map((field) => ({ id: field.id, label: field.label, type: field.type })) }));
     return (
-      <SubmissionReview productName={submission.product.name} steps={reviewSteps} values={submission.values.map((value) => ({ fieldId: value.fieldId, value: value.value, files: value.files as { url: string; name: string; type: string }[] | null }))} />
+      <SubmissionReview productName={submission.product.name} campaignUrl={submission.campaign ? `/campaign/${submission.campaign.shareToken}` : undefined} steps={reviewSteps} values={submission.values.map((value) => ({ fieldId: value.fieldId, value: value.value, files: value.files as { url: string; name: string; type: string }[] | null }))} />
     );
   }
 
