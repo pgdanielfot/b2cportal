@@ -26,7 +26,7 @@ export default function LiveAdPreview({ platform, brand, feedMedia, storyImage, 
     <div className="mt-3 flex gap-2"><Tab active={placement === "FEED"} onClick={() => setPlacement("FEED")}>Feed</Tab><Tab active={placement === "STORY"} onClick={() => setPlacement("STORY")}>Story</Tab></div>
     {placement === "STORY" && storyVideo && <div className="mt-2 flex gap-2 text-[11px]"><button type="button" onClick={() => setStoryFormat("IMAGE")} className={`rounded px-2 py-1 ${storyFormat === "IMAGE" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>Story image</button><button type="button" onClick={() => setStoryFormat("VIDEO")} className={`rounded px-2 py-1 ${storyFormat === "VIDEO" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>Story video</button></div>}
     <div className="mt-3 rounded-xl bg-[#e9f0fa] p-4">
-      {placement === "FEED" ? <FeedPost instagram={instagram} brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} action={action} />}
+      {placement === "FEED" ? <FeedPost instagram={instagram} brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} caption={caption} action={action} />}
     </div>
     <p className="mt-3 text-[11px] leading-4 text-mahogany/45">Live visual guide only. The final display can vary by device and platform settings.</p>
   </section>;
@@ -45,12 +45,15 @@ function FeedPost({ instagram, brand, media, caption, action, destination }: { i
   </div>;
 }
 
-function StoryPost({ brand, media, action }: { brand: string; media?: Media; action: string }) {
+function StoryPost({ brand, media, caption, action }: { brand: string; media?: Media; caption?: string; action: string }) {
   return <div className="mx-auto w-[260px] overflow-hidden rounded-[1.4rem] border-[5px] border-[#111b30] bg-[#111b30] shadow-[0_16px_30px_rgba(20,35,60,0.28)]">
     <div className="relative aspect-[9/16] overflow-hidden bg-[#dce6f5]">
       <Creative media={media} ratio="9 / 16" full />
       <div className="absolute inset-x-3 top-3 h-0.5 rounded bg-white/55"><div className="h-full w-2/3 rounded bg-white" /></div>
       <div className="absolute inset-x-3 top-6 flex items-center gap-2 text-white"><Avatar brand={brand} /><div><p className="text-[10px] font-bold drop-shadow">{brand}</p><p className="text-[9px] opacity-85">Sponsored</p></div><span className="ml-auto text-sm">•••</span></div>
+      <div className="absolute inset-x-4 bottom-16 rounded-md bg-black/45 px-2 py-1.5 text-[10px] font-semibold leading-4 text-white shadow-sm">
+        <p className="line-clamp-2">{caption || "Your campaign caption will appear here."}</p>
+      </div>
       <div className="absolute inset-x-4 bottom-5"><ActionButton brand={brand} full>{action}</ActionButton></div>
     </div>
   </div>;
