@@ -158,16 +158,16 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
+      <div className="sticky top-3 z-10 flex flex-col gap-3 rounded-2xl border border-crystal bg-white/95 p-3 shadow-sm backdrop-blur sm:flex-row sm:items-center">
         <input
           value={draft.name}
           onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-          className="flex-1 rounded-md border px-3 py-2 text-lg font-semibold text-mahogany focus:border-ignite focus:outline-none"
+          className="flex-1 rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-lg font-bold text-mahogany outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
         />
         <button
           onClick={handleSave}
           disabled={isPending}
-          className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
+          className="rounded-xl bg-ignite px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-ignite-hover disabled:opacity-50"
         >
           {isPending ? "Saving..." : "Save"}
         </button>
@@ -185,9 +185,9 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
               draggedStepIndex.current = null;
             }
           }}
-          className="rounded-lg border border-crystal bg-white p-5 space-y-4"
+          className="space-y-5 rounded-3xl border border-crystal bg-white p-5 shadow-sm"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 border-b border-crystal pb-4">
             <span
               draggable
               onDragStart={() => {
@@ -198,59 +198,58 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
             >
               ⠿
             </span>
-            <span className="text-sm text-mahogany/40">Step {stepIndex + 1}</span>
+            <span className="rounded-full bg-crystal-soft px-2.5 py-1 text-xs font-bold text-mahogany/55">Step {stepIndex + 1}</span>
             <input
               value={step.title}
               onChange={(e) => updateStep(stepIndex, { title: e.target.value })}
-              className="flex-1 rounded-md border px-3 py-1.5 text-sm font-medium focus:border-ignite focus:outline-none"
+              className="min-w-[200px] flex-1 rounded-xl border border-crystal bg-[#fbfcff] px-3 py-2 text-sm font-semibold text-mahogany outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
             />
             <button
               onClick={() => removeStep(stepIndex)}
-              className="text-sm text-red-600 hover:underline"
+              className="ml-auto text-sm font-medium text-red-600 hover:underline"
             >
               Remove step
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-2 pl-6">
+          <div className="grid gap-3 rounded-2xl bg-crystal-soft/60 p-3 sm:grid-cols-2">
             <input
               value={step.titleMs ?? ""}
               onChange={(e) => updateStep(stepIndex, { titleMs: e.target.value })}
-              placeholder="Title in Bahasa Melayu (optional)"
-              className="flex-1 min-w-[180px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+              placeholder="Bahasa Melayu title (optional)"
+              className="w-full rounded-lg border border-crystal bg-white px-3 py-2 text-sm outline-none focus:border-ignite"
             />
             <input
               value={step.titleZh ?? ""}
               onChange={(e) => updateStep(stepIndex, { titleZh: e.target.value })}
-              placeholder="Title in Mandarin (optional)"
-              className="flex-1 min-w-[180px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+              placeholder="Mandarin title (optional)"
+              className="w-full rounded-lg border border-crystal bg-white px-3 py-2 text-sm outline-none focus:border-ignite"
             />
           </div>
 
-          <div className="space-y-1 pl-6">
-            <label className="text-xs font-medium text-mahogany/50">
-              Disclaimer shown above this step (optional)
-            </label>
+          <details className="rounded-2xl border border-crystal bg-[#fbfcff] p-4">
+            <summary className="cursor-pointer text-sm font-semibold text-mahogany">Disclaimer & display rules <span className="font-normal text-mahogany/50">(optional)</span></summary>
+            <div className="mt-4 space-y-2">
             <textarea
               value={step.disclaimer ?? ""}
               onChange={(e) => updateStep(stepIndex, { disclaimer: e.target.value })}
               placeholder="Disclaimer in English"
               rows={2}
-              className="w-full rounded-md border px-2 py-1.5 text-xs focus:border-ignite focus:outline-none"
+              className="w-full rounded-lg border border-crystal bg-white px-3 py-2 text-sm outline-none focus:border-ignite"
             />
             <textarea
               value={step.disclaimerMs ?? ""}
               onChange={(e) => updateStep(stepIndex, { disclaimerMs: e.target.value })}
               placeholder="Disclaimer in Bahasa Melayu (optional)"
               rows={2}
-              className="w-full rounded-md border px-2 py-1.5 text-xs focus:border-ignite focus:outline-none"
+              className="w-full rounded-lg border border-crystal bg-white px-3 py-2 text-sm outline-none focus:border-ignite"
             />
             <textarea
               value={step.disclaimerZh ?? ""}
               onChange={(e) => updateStep(stepIndex, { disclaimerZh: e.target.value })}
               placeholder="Disclaimer in Mandarin (optional)"
               rows={2}
-              className="w-full rounded-md border px-2 py-1.5 text-xs focus:border-ignite focus:outline-none"
+              className="w-full rounded-lg border border-crystal bg-white px-3 py-2 text-sm outline-none focus:border-ignite"
             />
             <DisclaimerImageUpload
               value={step.disclaimerImage}
@@ -262,13 +261,10 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
               onChange={(disclaimerCondition) => updateStep(stepIndex, { disclaimerCondition })}
               label="Only show this disclaimer if a specific answer is chosen"
             />
-          </div>
+            </div>
+          </details>
 
-          <ConditionEditor
-            condition={step.condition}
-            candidateFields={savedFieldsExcept((si) => si !== stepIndex)}
-            onChange={(condition) => updateStep(stepIndex, { condition })}
-          />
+          <details className="rounded-xl border border-dashed border-crystal bg-white px-4 py-3"><summary className="cursor-pointer text-sm font-medium text-mahogany/70">Show this step only when an answer matches</summary><div className="mt-3"><ConditionEditor condition={step.condition} candidateFields={savedFieldsExcept((si) => si !== stepIndex)} onChange={(condition) => updateStep(stepIndex, { condition })} /></div></details>
 
           <div className="space-y-3">
             {step.fields.map((field, fieldIndex) => (
@@ -283,7 +279,7 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
                   }
                   draggedField.current = null;
                 }}
-                className="rounded-md border border-crystal p-3 space-y-2"
+                className="space-y-3 rounded-2xl border border-crystal bg-[#fbfcff] p-4 shadow-sm"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span
@@ -300,14 +296,14 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
                     value={field.label}
                     onChange={(e) => updateField(stepIndex, fieldIndex, { label: e.target.value })}
                     placeholder="Field label"
-                    className="flex-1 min-w-[160px] rounded-md border px-2 py-1.5 text-sm"
+                    className="min-w-[200px] flex-1 rounded-xl border border-crystal bg-white px-3 py-2 text-sm font-semibold text-mahogany outline-none focus:border-ignite"
                   />
                   <select
                     value={field.type}
                     onChange={(e) =>
                       updateField(stepIndex, fieldIndex, { type: e.target.value as FieldTypeValue })
                     }
-                    className="rounded-md border px-2 py-1.5 text-sm"
+                    className="rounded-xl border border-crystal bg-white px-3 py-2 text-sm outline-none focus:border-ignite"
                   >
                     {FIELD_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>
@@ -315,7 +311,7 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
                       </option>
                     ))}
                   </select>
-                  <label className="flex items-center gap-1 text-sm">
+                  <label className="flex items-center gap-1 rounded-lg bg-white px-2 py-2 text-sm font-medium">
                     <input
                       type="checkbox"
                       checked={field.required}
@@ -333,18 +329,18 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
                   </button>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pl-6">
+                <div className="grid gap-3 rounded-xl bg-white p-3 sm:grid-cols-2">
                   <input
                     value={field.labelMs ?? ""}
                     onChange={(e) => updateField(stepIndex, fieldIndex, { labelMs: e.target.value })}
-                    placeholder="Label in Bahasa Melayu (optional)"
-                    className="flex-1 min-w-[160px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+                    placeholder="Bahasa Melayu label (optional)"
+                    className="w-full rounded-lg border border-crystal px-3 py-2 text-sm outline-none focus:border-ignite"
                   />
                   <input
                     value={field.labelZh ?? ""}
                     onChange={(e) => updateField(stepIndex, fieldIndex, { labelZh: e.target.value })}
-                    placeholder="Label in Mandarin (optional)"
-                    className="flex-1 min-w-[160px] rounded-md border px-2 py-1 text-xs focus:border-ignite focus:outline-none"
+                    placeholder="Mandarin label (optional)"
+                    className="w-full rounded-lg border border-crystal px-3 py-2 text-sm outline-none focus:border-ignite"
                   />
                 </div>
 
