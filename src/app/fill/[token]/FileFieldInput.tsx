@@ -232,7 +232,7 @@ export default function FileFieldInput({
         {field.width && field.height ? ` · ${field.width}×${field.height}px` : ""}
       </p>
 
-      {formatError && <p className="text-sm text-red-600">{formatError}</p>}
+      {formatError && <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700">{formatError}</p>}
       {uploading && <p className="text-xs text-mahogany/50">Uploading…</p>}
       {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
 
@@ -251,17 +251,13 @@ export default function FileFieldInput({
         issue.isVideo ? (
           <div
             key={issue.file.name}
-            className="space-y-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm"
+            className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-sm shadow-sm"
           >
-            <p className="text-red-700">
-              &ldquo;{issue.file.name}&rdquo; is {issue.width}×{issue.height}px, but this field
-              requires exactly {field.width}×{field.height}px. Videos can&rsquo;t be auto-cropped —
-              please re-upload a video with the correct dimensions.
-            </p>
+            <p className="font-semibold text-amber-950">Video needs a different size</p><p className="mt-1 leading-5 text-amber-900/75"><span className="font-medium">{issue.file.name}</span> is {issue.width} × {issue.height}px. Please upload a video sized {field.width} × {field.height}px. Videos cannot be cropped here.</p>
             <button
               type="button"
               onClick={() => handleRemoveIssue(issue)}
-              className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
+              className="mt-3 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
             >
               Remove file
             </button>
@@ -269,37 +265,34 @@ export default function FileFieldInput({
         ) : (
           <div
             key={issue.previewUrl}
-            className="space-y-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm"
+            className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-sm shadow-sm"
           >
             <div className="flex items-center gap-3">
               {issue.previewUrl && <ImageThumbnail src={issue.previewUrl} alt={issue.file.name} />}
-              <p className="text-red-700">
-                &ldquo;{issue.file.name}&rdquo; is {issue.width}×{issue.height}px, but this field
-                requires exactly {field.width}×{field.height}px.
-              </p>
+              <div><p className="font-semibold text-amber-950">Image needs resizing</p><p className="mt-1 leading-5 text-amber-900/75"><span className="font-medium">{issue.file.name}</span> is {issue.width} × {issue.height}px. This placement needs {field.width} × {field.height}px.</p></div>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => handleAutoCrop(issue)}
                 disabled={processingName === issue.file.name}
-                className="rounded-md bg-ignite px-3 py-1.5 text-xs font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
+                className="rounded-lg bg-ignite px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-ignite-hover disabled:opacity-50"
               >
-                {processingName === issue.file.name ? "Cropping..." : "Auto-crop & resize for me"}
+                {processingName === issue.file.name ? "Resizing…" : "Resize automatically"}
               </button>
               <button
                 type="button"
                 onClick={() => setManualCropTarget(issue)}
-                className="rounded-md border border-mahogany/30 px-3 py-1.5 text-xs font-medium text-mahogany hover:bg-crystal-soft"
+                className="rounded-lg border border-crystal bg-white px-3 py-1.5 text-xs font-semibold text-mahogany hover:bg-crystal-soft"
               >
-                Manually crop
+                Crop manually
               </button>
               <button
                 type="button"
                 onClick={() => handleRemoveIssue(issue)}
-                className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
+                className="rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50"
               >
-                I&rsquo;ll crop it myself — remove file
+                Remove this file
               </button>
             </div>
           </div>

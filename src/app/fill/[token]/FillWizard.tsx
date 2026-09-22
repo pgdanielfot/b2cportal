@@ -341,7 +341,7 @@ export default function FillWizard({
             key={step.id}
             className={stepIndex === currentStepIndex ? "space-y-5" : "hidden"}
           >
-            <div className="border-b border-crystal pb-4"><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ignite">Campaign brief</p><h2 className="mt-1 text-xl font-bold text-mahogany">{localizedTitle(step)}</h2><p className="mt-1 text-sm text-mahogany/55">Complete the required details below to prepare your campaign.</p></div>
+            <div className="border-b border-crystal pb-4"><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ignite">Campaign brief</p><h2 className="mt-1 text-xl font-bold text-mahogany">{localizedTitle(step)}</h2><p className="mt-1 text-sm text-mahogany/55">{t.campaignBriefHint}</p></div>
             {disclaimerVisible(step) && (
               <div className="space-y-2 rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
                 <p>{localizedDisclaimer(step)}</p>
@@ -434,7 +434,7 @@ export default function FillWizard({
                   <input
                     type="url"
                     name={field.id}
-                    defaultValue={answers[field.id] ?? ""}
+                    value={answers[field.id] ?? ""}
                     placeholder="https://example.com"
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                     className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
@@ -452,7 +452,7 @@ export default function FillWizard({
                 {field.type === "DROPDOWN" && (
                   <select
                     name={field.id}
-                    defaultValue={answers[field.id] ?? ""}
+                    value={answers[field.id] ?? ""}
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                     className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                   >
