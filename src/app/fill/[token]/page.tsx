@@ -59,7 +59,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
   }));
 
   const displaySteps = submission.campaign?.language
-    ? steps.filter((step) => !step.fields.some((field) => /full name|agent id/i.test(field.label)))
+    ? steps.filter((step) => !step.fields.some((field) => /agent\s*(id|identifier|code)|id\s*ejen|经纪人编号/i.test(field.label)))
     : steps;
 
   return (
@@ -71,8 +71,8 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
           campaignUrl={submission.campaign ? `/campaign/${submission.campaign.shareToken}` : undefined}
           initialLanguage={(submission.campaign?.language as "en" | "ms" | "zh" | null) ?? undefined}
           initialAnswers={Object.fromEntries([
-            ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /full name/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentName ?? ""]),
-            ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /agent id/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentId ?? ""]),
+            ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /^(full )?name$|nama penuh|姓名/i.test(field.label.trim())).map((field) => [field.id, submission.campaign?.agentName ?? ""]),
+            ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /agent\s*(id|identifier|code)|id\s*ejen|经纪人编号/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentId ?? ""]),
           ])}
           steps={displaySteps}
           useBlobUpload={Boolean(process.env.BLOB_READ_WRITE_TOKEN)}
