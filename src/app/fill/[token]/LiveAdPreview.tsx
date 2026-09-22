@@ -51,9 +51,7 @@ function StoryPost({ brand, media, caption, action }: { brand: string; media?: M
       <Creative media={media} ratio="9 / 16" full />
       <div className="absolute inset-x-3 top-3 h-0.5 rounded bg-white/55"><div className="h-full w-2/3 rounded bg-white" /></div>
       <div className="absolute inset-x-3 top-6 flex items-center gap-2 text-white"><Avatar brand={brand} /><div><p className="text-[10px] font-bold drop-shadow">{brand}</p><p className="text-[9px] opacity-85">Sponsored</p></div><span className="ml-auto text-sm">•••</span></div>
-      <div className="absolute inset-x-4 bottom-16 rounded-md bg-black/45 px-2 py-1.5 text-[10px] font-semibold leading-4 text-white shadow-sm">
-        <p className="line-clamp-2">{caption || "Your campaign caption will appear here."}</p>
-      </div>
+      <p className="absolute inset-x-4 bottom-16 line-clamp-2 text-[10px] font-semibold leading-4 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{caption || "Your campaign caption will appear here."}</p>
       <div className="absolute inset-x-4 bottom-5"><ActionButton brand={brand} full>{action}</ActionButton></div>
     </div>
   </div>;
@@ -62,17 +60,22 @@ function StoryPost({ brand, media, caption, action }: { brand: string; media?: M
 function Avatar({ brand }: { brand: string }) {
   const color = brand === "PropertyGuru" ? "bg-[#d80000]" : brand === "iProperty" ? "bg-[#2169df]" : "bg-[#707782]";
   if (brand === "PropertyGuru / iProperty") {
-    return <span className={`flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full p-0.5 ${color}`}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/brands/propertyguru.png" alt="PropertyGuru" className="h-full w-1/2 rounded-l-full bg-white object-contain p-0.5" />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/brands/iproperty.jpeg" alt="iProperty" className="h-full w-1/2 rounded-r-full bg-white object-contain p-0.5" />
+    return <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${color} shadow-sm`}>
+      <span className="absolute -left-0.5 top-0.5 flex h-[18px] w-[18px] items-center justify-center overflow-hidden rounded-full border border-white bg-white p-0.5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brands/propertyguru.png" alt="PropertyGuru" className="h-full w-full scale-[1.5] object-cover" />
+      </span>
+      <span className="absolute -bottom-0.5 -right-0.5 flex h-[18px] w-[18px] items-center justify-center overflow-hidden rounded-full border border-white bg-white p-0.5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brands/iproperty.jpeg" alt="iProperty" className="h-full w-full object-contain" />
+      </span>
     </span>;
   }
   const source = brand === "iProperty" ? "/brands/iproperty.jpeg" : "/brands/propertyguru.png";
-  return <span className={`flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full p-0.5 ${color}`}>
+  const logoStyle = brand === "PropertyGuru" ? "scale-[1.55] object-cover" : "object-contain";
+  return <span className={`flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full p-[2px] shadow-sm ${color}`}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={source} alt={brand} className="h-full w-full rounded-full bg-white object-contain p-0.5" />
+    <img src={source} alt={brand} className={`h-full w-full rounded-full ${logoStyle}`} />
   </span>;
 }
 
