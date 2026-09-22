@@ -65,8 +65,20 @@ function Avatar({ brand }: { brand: string }) {
   }
   if (brand === "PropertyGuru") {
     return <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e00000] shadow-sm">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/brands/propertyguru.png" alt="PropertyGuru" className="h-full w-full scale-[1.15] object-cover brightness-0 invert" />
+      <span
+        aria-label="PropertyGuru"
+        className="h-[72%] w-[72%] bg-white"
+        style={{
+          WebkitMaskImage: "url('/brands/propertyguru.png')",
+          WebkitMaskPosition: "center",
+          WebkitMaskRepeat: "no-repeat",
+          WebkitMaskSize: "auto 150%",
+          maskImage: "url('/brands/propertyguru.png')",
+          maskPosition: "center",
+          maskRepeat: "no-repeat",
+          maskSize: "auto 150%",
+        }}
+      />
     </span>
   }
   return <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-sm">
