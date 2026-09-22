@@ -53,6 +53,7 @@ export default function FileFieldInput({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [issues, setIssues] = useState<DimensionIssue[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
+  const [readyFiles, setReadyFiles] = useState<File[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [processingName, setProcessingName] = useState<string | null>(null);
@@ -74,6 +75,8 @@ export default function FileFieldInput({
   }
 
   async function syncReadyFiles(files: File[]) {
+    setReadyFiles(files);
+    replaceInputFiles(files);
     setPreviewsFor(files);
     setUploadError(null);
 
@@ -118,10 +121,16 @@ export default function FileFieldInput({
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFormatError(null);
     setIssues([]);
-    await syncReadyFiles([]);
 
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
+
+    const maxFiles = field.maxFiles ?? 1;
+    if (readyFiles.length + files.length > maxFiles) {
+      setFormatError(`This field allows at most ${maxFiles} file(s). You already have ${readyFiles.length} selected.`);
+      replaceInputFiles(readyFiles);
+      return;
+    }
 
     if (field.allowedTypes.length > 0) {
       const bad = files.filter((f) => !field.allowedTypes.includes(f.type));
@@ -129,7 +138,7 @@ export default function FileFieldInput({
         setFormatError(
           `"${bad.map((f) => f.name).join(", ")}" is not an accepted format. Allowed: ${formatLabels(field.allowedTypes)}.`,
         );
-        e.target.value = "";
+        replaceInputFiles(readyFiles);
         return;
       }
     }
@@ -138,7 +147,7 @@ export default function FileFieldInput({
     const tooBig = files.filter((f) => f.size > maxSizeMb * 1024 * 1024);
     if (tooBig.length > 0) {
       setFormatError(`"${tooBig.map((f) => f.name).join(", ")}" exceeds the ${maxSizeMb}MB limit.`);
-      e.target.value = "";
+      replaceInputFiles(readyFiles);
       return;
     }
 
@@ -160,21 +169,15 @@ export default function FileFieldInput({
           })),
         );
       }
-      await syncReadyFiles(ok.map((c) => c.file));
+      await syncReadyFiles([...readyFiles, ...ok.map((c) => c.file)]);
       return;
     }
 
-    await syncReadyFiles(files);
-  }
-
-  function removeFileFromInput(file: File) {
-    const current = Array.from(inputRef.current?.files ?? []).filter((f) => f !== file);
-    replaceInputFiles(current);
+    await syncReadyFiles([...readyFiles, ...files]);
   }
 
   async function removeReadyPreview(preview: Preview) {
-    const remaining = Array.from(inputRef.current?.files ?? []).filter((file) => file.name !== preview.name);
-    replaceInputFiles(remaining);
+    const remaining = readyFiles.filter((file) => file.name !== preview.name);
     await syncReadyFiles(remaining);
   }
 
@@ -190,9 +193,8 @@ export default function FileFieldInput({
   }
 
   async function applyFixedFile(issue: DimensionIssue, fixed: File) {
-    const current = Array.from(inputRef.current?.files ?? []);
-    const updated = current.map((f) => (f === issue.file ? fixed : f));
-    replaceInputFiles(updated);
+    const existingIndex = readyFiles.indexOf(issue.file);
+    const updated = existingIndex >= 0 ? readyFiles.map((file) => (file === issue.file ? fixed : file)) : [...readyFiles, fixed];
     if (issue.previewUrl) URL.revokeObjectURL(issue.previewUrl);
 
     const remainingIssues = issues.filter((i) => i.file !== issue.file);
@@ -201,7 +203,7 @@ export default function FileFieldInput({
   }
 
   function handleRemoveIssue(issue: DimensionIssue) {
-    removeFileFromInput(issue.file);
+    replaceInputFiles(readyFiles);
     if (issue.previewUrl) URL.revokeObjectURL(issue.previewUrl);
     setIssues((prev) => prev.filter((i) => i.file !== issue.file));
   }
