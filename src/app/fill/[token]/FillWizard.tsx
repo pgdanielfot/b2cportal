@@ -77,14 +77,11 @@ export default function FillWizard({
 
   const t = translations[language ?? "en"];
   const isUploading = uploadingFields.size > 0;
-  const platformField = steps.flatMap((step) => step.fields).find((field) => /platform/i.test(field.label));
-  const platformAnswer = platformField ? answers[platformField.id] : undefined;
-  const placementPlatform = platformAnswer === "Facebook" || platformAnswer === "Instagram" ? platformAnswer : undefined;
-  const showCampaignPreview = Boolean(platformField);
   const brandField = steps.flatMap((step) => step.fields).find((field) => /advertise as|brand/i.test(field.label));
   const captionField = steps.flatMap((step) => step.fields).find((field) => /caption/i.test(field.label));
   const ctaField = steps.flatMap((step) => step.fields).find((field) => /call.?to.?action|\bcta\b/i.test(field.label));
   const destinationField = steps.flatMap((step) => step.fields).find((field) => /where would you like to advertise|listing.*url|profile.*url/i.test(field.label));
+  const showCampaignPreview = Boolean(campaignUrl && (brandField || captionField || ctaField || destinationField));
   const mediaEntries = Object.entries(previewMedia);
   const feedMedia = mediaEntries.find(([fieldId, media]) => Boolean(media) && /feed/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1]
     ?? mediaEntries.find(([fieldId, media]) => Boolean(media) && !/story/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1];
@@ -98,7 +95,7 @@ export default function FillWizard({
   const isLastStep = visiblePosition === visibleStepIndices.length - 1;
 
   function fieldVisible(field: Field) {
-    return isConditionMet(field.condition ?? null, answers);
+    return !(campaignUrl && /platform/i.test(field.label)) && isConditionMet(field.condition ?? null, answers);
   }
 
   function localizedLabel(field: Field): string {
@@ -530,8 +527,7 @@ export default function FillWizard({
       </form>
       {showCampaignPreview && (
         <aside className="lg:sticky lg:top-6">
-          {placementPlatform ? <LiveAdPreview
-            platform={placementPlatform}
+          <LiveAdPreview
             language={language ?? "en"}
             brand={brandField ? answers[brandField.id] : undefined}
             feedMedia={feedMedia}
@@ -540,7 +536,7 @@ export default function FillWizard({
             caption={captionField ? answers[captionField.id] : undefined}
             cta={ctaField ? answers[ctaField.id] : undefined}
             destination={destinationField ? answers[destinationField.id] : undefined}
-          /> : <div className="overflow-hidden rounded-2xl border border-crystal bg-white p-5 shadow-sm"><div className="flex items-start justify-between"><div><h2 className="text-base font-semibold text-mahogany">Live Ad Preview</h2><p className="mt-1 text-xs text-mahogany/55">Preview Iklan Langsung · 实时广告预览</p></div><span className="rounded-full bg-crystal-soft px-2 py-1 text-[10px] font-bold text-mahogany/50">WAITING</span></div><div className="mt-5 flex min-h-80 items-center justify-center rounded-xl border border-dashed border-crystal bg-[linear-gradient(135deg,_#f5f9ff,_#edf3fc)] p-8 text-center"><div><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">▧</div><h3 className="mt-4 font-semibold text-mahogany">Your ad preview will appear here</h3><p className="mt-2 max-w-60 text-sm leading-5 text-mahogany/55">Choose Facebook or Instagram to start previewing your campaign.</p></div></div><p className="mt-4 text-[11px] leading-4 text-mahogany/45">Your selected platform, brand, caption and materials will update this preview live.</p></div>}
+          />
         </aside>
       )}
       </div>

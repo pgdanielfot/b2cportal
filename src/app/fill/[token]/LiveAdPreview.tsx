@@ -4,7 +4,6 @@ import { useState } from "react";
 import { translations, type Language } from "@/lib/i18n";
 
 type Props = {
-  platform: "Facebook" | "Instagram";
   brand?: string;
   feedMedia?: Media;
   storyImage?: Media;
@@ -16,29 +15,35 @@ type Props = {
 };
 export type Media = { url: string; type: string };
 
-export default function LiveAdPreview({ platform, brand, feedMedia, storyImage, storyVideo, caption, cta, destination, language = "en" }: Props) {
+export default function LiveAdPreview({ brand, feedMedia, storyImage, storyVideo, caption, cta, destination, language = "en" }: Props) {
   const [placement, setPlacement] = useState<"FEED" | "STORY">("FEED");
   const [storyFormat, setStoryFormat] = useState<"IMAGE" | "VIDEO">("IMAGE");
   const t = translations[language];
-  const instagram = platform === "Instagram";
   const action = cta || t.learnMore;
   const brandLabel = brand === "PropertyGuru" || brand === "iProperty" ? brand : "PropertyGuru / iProperty";
 
   return <section className="rounded-2xl border border-crystal bg-white p-4 shadow-sm">
-    <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-mahogany">{t.liveAdPreview}</h2><p className="text-xs text-mahogany/55">Preview Iklan Langsung · 实时广告预览</p></div><span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">● LIVE</span></div>
+    <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-mahogany">{t.liveAdPreview}</h2><p className="text-xs text-mahogany/55">Facebook &amp; Instagram · Preview Iklan Langsung</p></div><span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">● LIVE</span></div>
     <div className="mt-3 flex gap-2"><Tab active={placement === "FEED"} onClick={() => setPlacement("FEED")}>{t.feed}</Tab><Tab active={placement === "STORY"} onClick={() => setPlacement("STORY")}>{t.story}</Tab></div>
     {placement === "STORY" && storyVideo && <div className="mt-2 flex gap-2 text-[11px]"><button type="button" onClick={() => setStoryFormat("IMAGE")} className={`rounded px-2 py-1 ${storyFormat === "IMAGE" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyImage}</button><button type="button" onClick={() => setStoryFormat("VIDEO")} className={`rounded px-2 py-1 ${storyFormat === "VIDEO" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyVideo}</button></div>}
-    <div className="mt-3 rounded-xl bg-[#e9f0fa] p-4">
-      {placement === "FEED" ? <FeedPost instagram={instagram} brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} caption={caption} action={action} t={t} />}
+    <div className="mt-3 rounded-xl bg-[#e9f0fa] p-3 sm:p-4">
+      <div className={`grid gap-4 ${placement === "FEED" ? "grid-cols-1 min-[440px]:grid-cols-2" : "grid-cols-2"}`}>
+        <PlatformPreview name="Facebook">{placement === "FEED" ? <FeedPost instagram={false} brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} caption={caption} action={action} t={t} />}</PlatformPreview>
+        <PlatformPreview name="Instagram">{placement === "FEED" ? <FeedPost instagram brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} caption={caption} action={action} t={t} />}</PlatformPreview>
+      </div>
     </div>
     <p className="mt-3 text-[11px] leading-4 text-mahogany/45">{t.visualGuide}</p>
   </section>;
 }
 
+function PlatformPreview({ name, children }: { name: "Facebook" | "Instagram"; children: React.ReactNode }) {
+  return <div className="min-w-0"><p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-mahogany/55">{name}</p>{children}</div>;
+}
+
 function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${active ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/60 hover:bg-crystal-soft"}`}>{children}</button>; }
 
 function FeedPost({ instagram, brand, media, caption, action, destination, t }: { instagram: boolean; brand: string; media?: Media; caption?: string; action: string; destination?: string; t: (typeof translations)[Language] }) {
-  return <div className="mx-auto max-w-[340px] overflow-hidden rounded-xl border border-crystal bg-white shadow-sm">
+  return <div className="mx-auto w-full max-w-[340px] overflow-hidden rounded-xl border border-crystal bg-white shadow-sm">
     <div className="flex items-center gap-2 px-3 py-2.5"><Avatar brand={brand} /><div className="min-w-0"><p className="truncate text-xs font-bold text-mahogany">{brand}</p><p className="text-[10px] text-mahogany/50">{instagram ? "Sponsored" : "Sponsored · Facebook"}</p></div><span className="ml-auto text-lg leading-none text-mahogany/50">•••</span></div>
     <Creative media={media} ratio="1 / 1" t={t} />
     {instagram && <div className="px-3 pt-2 text-base tracking-wide text-mahogany">♡　◯　⌁</div>}
@@ -49,7 +54,7 @@ function FeedPost({ instagram, brand, media, caption, action, destination, t }: 
 }
 
 function StoryPost({ brand, media, caption, action, t }: { brand: string; media?: Media; caption?: string; action: string; t: (typeof translations)[Language] }) {
-  return <div className="mx-auto w-[260px] overflow-hidden rounded-[1.4rem] border-[5px] border-[#111b30] bg-[#111b30] shadow-[0_16px_30px_rgba(20,35,60,0.28)]">
+  return <div className="mx-auto w-full max-w-[220px] overflow-hidden rounded-[1.4rem] border-[5px] border-[#111b30] bg-[#111b30] shadow-[0_16px_30px_rgba(20,35,60,0.28)]">
     <div className="relative aspect-[9/16] overflow-hidden bg-[#dce6f5]">
       <Creative media={media} ratio="9 / 16" full t={t} />
       <div className="absolute inset-x-3 top-3 h-0.5 rounded bg-white/55"><div className="h-full w-2/3 rounded bg-white" /></div>

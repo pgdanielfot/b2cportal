@@ -102,7 +102,7 @@ export async function submitFillForm(
 ): Promise<SubmitFormResult> {
   const submission = await prisma.submission.findUnique({
     where: { shareToken: token },
-    include: { product: { include: { steps: { include: { fields: true } } } } },
+    include: { campaign: { select: { id: true } }, product: { include: { steps: { include: { fields: true } } } } },
   });
 
   if (!submission) return { ok: false, error: "This link is invalid." };
@@ -129,6 +129,9 @@ export async function submitFillForm(
   }
 
   for (const field of allFields) {
+    // Meta campaigns are always prepared for both Facebook and Instagram, so
+    // the legacy single-platform field is intentionally not collected.
+    if (submission.campaign && /platform/i.test(field.label)) continue;
     const isVisible =
       isConditionMet(field.stepCondition, answers) &&
       isConditionMet(field.condition as Condition, answers);
