@@ -70,7 +70,7 @@ export default function FillWizard({
   const [agreedDisclaimers, setAgreedDisclaimers] = useState<Set<string>>(new Set());
   const [uploadingFields, setUploadingFields] = useState<Set<string>>(new Set());
   const [uploadedSummary, setUploadedSummary] = useState<
-    { label: string; files: { name: string; url: string; type: string }[] }[]
+    { label: string; width?: number | null; height?: number | null; files: { name: string; url: string; type: string }[] }[]
   >([]);
   const [previewMedia, setPreviewMedia] = useState<Record<string, Media | undefined>>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -244,7 +244,7 @@ export default function FillWizard({
                     return [];
                   }
                 });
-              return { label: localizedLabel(f), files: [...fromFiles, ...fromBlob] };
+              return { label: localizedLabel(f), width: f.width, height: f.height, files: [...fromFiles, ...fromBlob] };
             })
             .filter((f) => f.files.length > 0),
         );
@@ -297,11 +297,11 @@ export default function FillWizard({
         </section>
 
         {uploadedSummary.length > 0 && (
-          <section className="rounded-3xl border border-crystal bg-white p-5 shadow-sm sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-mahogany/50">Creative kit</p><h2 className="mt-1 text-lg font-bold text-mahogany">Materials received</h2><p className="mt-1 text-sm text-mahogany/55">A quick review of the files included in this submission.</p></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">{submittedAssetCount} {submittedAssetCount === 1 ? "asset" : "assets"}</span></div><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{uploadedSummary.flatMap((group) => group.files.map((file) => ({ ...file, label: group.label }))).map((file) => <div key={file.url} className="group relative aspect-square overflow-hidden rounded-2xl border border-crystal bg-crystal-soft shadow-sm">{file.type.startsWith("video/") ? <video src={file.url} className="h-full w-full object-cover" muted playsInline preload="metadata" /> : <>
+          <section className="rounded-3xl border border-crystal bg-white p-5 shadow-sm sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-mahogany/50">Creative kit</p><h2 className="mt-1 text-lg font-bold text-mahogany">Materials received</h2><p className="mt-1 text-sm text-mahogany/55">Shown in the dimensions requested for each placement.</p></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">{submittedAssetCount} {submittedAssetCount === 1 ? "asset" : "assets"}</span></div><div className="mt-5 flex flex-wrap items-start gap-4">{uploadedSummary.flatMap((group) => group.files.map((file) => ({ ...file, label: group.label, width: group.width, height: group.height }))).map((file) => <div key={file.url} className="w-[min(100%,_13rem)]"><div className="group relative w-full overflow-hidden rounded-2xl border border-crystal bg-crystal-soft shadow-sm" style={{ aspectRatio: file.width && file.height ? `${file.width} / ${file.height}` : /story/i.test(file.label) ? "9 / 16" : "1 / 1" }}>{file.type.startsWith("video/") ? <video src={file.url} className="h-full w-full object-cover" muted playsInline preload="metadata" /> : <>
             {/* Object URLs and Blob URLs cannot reliably be optimized by next/image. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={file.url} alt={file.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-          </>}<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-2 pt-7 text-[10px] font-bold uppercase tracking-wide text-white">{file.type.startsWith("video/") && "▶ "}{file.label.replace(" (Optional)", "")}</div></div>)}</div></section>
+          </>}<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-2 pt-7 text-[10px] font-bold uppercase tracking-wide text-white">{file.type.startsWith("video/") && "▶ "}{file.label.replace(" (Optional)", "")}</div></div><p className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wide text-mahogany/50">{file.width && file.height ? `${file.width} × ${file.height}` : /story/i.test(file.label) ? "9:16 Story" : "1:1 Feed"}</p></div>)}</div></section>
         )}
       </div>
     );
