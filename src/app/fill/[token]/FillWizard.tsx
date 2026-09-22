@@ -72,7 +72,7 @@ export default function FillWizard({
   const [uploadedSummary, setUploadedSummary] = useState<
     { label: string; width?: number | null; height?: number | null; files: { name: string; url: string; type: string }[] }[]
   >([]);
-  const [previewMedia, setPreviewMedia] = useState<Record<string, Media | undefined>>({});
+  const [previewMedia, setPreviewMedia] = useState<Record<string, Media[]>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
   const t = translations[language ?? "en"];
@@ -82,11 +82,11 @@ export default function FillWizard({
   const ctaField = steps.flatMap((step) => step.fields).find((field) => /call.?to.?action|\bcta\b/i.test(field.label));
   const destinationField = steps.flatMap((step) => step.fields).find((field) => /agent listing url|listing.*url|profile.*url/i.test(field.label) && field.type === "URL");
   const showCampaignPreview = Boolean(campaignUrl && (brandField || captionField || ctaField || destinationField));
-  const mediaEntries = Object.entries(previewMedia);
-  const feedMedia = mediaEntries.find(([fieldId, media]) => Boolean(media) && /feed/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1]
-    ?? mediaEntries.find(([fieldId, media]) => Boolean(media) && !/story/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1];
-  const storyImage = mediaEntries.find(([fieldId, media]) => Boolean(media) && /story/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? "") && !/video/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1];
-  const storyVideo = mediaEntries.find(([fieldId, media]) => Boolean(media) && /story/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? "") && /video/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1];
+  const fieldLabelFor = (fieldId: string) => steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? "";
+  const mediaFor = (test: (label: string) => boolean) => Object.entries(previewMedia).find(([fieldId, media]) => media.length > 0 && test(fieldLabelFor(fieldId)))?.[1] ?? [];
+  const feedMedia = mediaFor((label) => /feed/i.test(label));
+  const storyImage = mediaFor((label) => /stor(y|ies)/i.test(label) && !/video/i.test(label));
+  const storyVideo = mediaFor((label) => /stor(y|ies)/i.test(label) && /video/i.test(label));
 
   const visibleStepIndices = steps
     .map((s, i) => i)
@@ -140,7 +140,7 @@ export default function FillWizard({
     });
   }
 
-  function handlePreviewMediaChange(fieldId: string, media?: Media) {
+  function handlePreviewMediaChange(fieldId: string, media: Media[]) {
     setPreviewMedia((current) => ({ ...current, [fieldId]: media }));
   }
 

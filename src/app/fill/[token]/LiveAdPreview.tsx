@@ -5,9 +5,9 @@ import { localizeCommonContent, translations, type Language } from "@/lib/i18n";
 
 type Props = {
   brand?: string;
-  feedMedia?: Media;
-  storyImage?: Media;
-  storyVideo?: Media;
+  feedMedia?: Media[];
+  storyImage?: Media[];
+  storyVideo?: Media[];
   caption?: string;
   cta?: string;
   destination?: string;
@@ -19,22 +19,36 @@ export default function LiveAdPreview({ brand, feedMedia, storyImage, storyVideo
   const [placement, setPlacement] = useState<"FEED" | "STORY">("FEED");
   const [storyFormat, setStoryFormat] = useState<"IMAGE" | "VIDEO">("IMAGE");
   const [platform, setPlatform] = useState<"FACEBOOK" | "INSTAGRAM">("FACEBOOK");
+  const [feedIndex, setFeedIndex] = useState(0);
+  const [storyImageIndex, setStoryImageIndex] = useState(0);
+  const [storyVideoIndex, setStoryVideoIndex] = useState(0);
   const t = translations[language];
   const action = localizeCommonContent(cta || t.learnMore, language);
   const brandLabel = /propertyguru.*\+.*iproperty|both/i.test(brand ?? "") ? "PropertyGuru / iProperty" : /iproperty|ipp/i.test(brand ?? "") ? "iProperty" : /propertyguru|\bpg\b/i.test(brand ?? "") ? "PropertyGuru" : "PropertyGuru / iProperty";
+  const feed = feedMedia ?? [];
+  const storyImages = storyImage ?? [];
+  const storyVideos = storyVideo ?? [];
+  const activeStoryMedia = storyFormat === "VIDEO" ? storyVideos : storyImages;
 
   return <section className="rounded-2xl border border-crystal bg-white p-4 shadow-sm">
     <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-mahogany">{t.liveAdPreview}</h2><p className="text-xs text-mahogany/55">Preview Iklan Langsung · 实时广告预览</p></div><span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">● LIVE</span></div>
     <div className="mt-3 flex flex-wrap gap-2"><Tab active={platform === "FACEBOOK"} onClick={() => setPlatform("FACEBOOK")}>Facebook</Tab><Tab active={platform === "INSTAGRAM"} onClick={() => setPlatform("INSTAGRAM")}>Instagram</Tab><span className="mx-1 hidden h-7 w-px bg-crystal sm:block" /><Tab active={placement === "FEED"} onClick={() => setPlacement("FEED")}>{t.feed}</Tab><Tab active={placement === "STORY"} onClick={() => setPlacement("STORY")}>{t.story}</Tab></div>
-    {placement === "STORY" && storyVideo && <div className="mt-2 flex gap-2 text-[11px]"><button type="button" onClick={() => setStoryFormat("IMAGE")} className={`rounded px-2 py-1 ${storyFormat === "IMAGE" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyImage}</button><button type="button" onClick={() => setStoryFormat("VIDEO")} className={`rounded px-2 py-1 ${storyFormat === "VIDEO" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyVideo}</button></div>}
+    {placement === "STORY" && storyVideos.length > 0 && <div className="mt-2 flex gap-2 text-[11px]"><button type="button" onClick={() => setStoryFormat("IMAGE")} className={`rounded px-2 py-1 ${storyFormat === "IMAGE" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyImage}</button><button type="button" onClick={() => setStoryFormat("VIDEO")} className={`rounded px-2 py-1 ${storyFormat === "VIDEO" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyVideo}</button></div>}
+    {placement === "FEED" && <CreativeSelector count={feed.length} activeIndex={feedIndex} onChange={setFeedIndex} />}
+    {placement === "STORY" && <CreativeSelector count={activeStoryMedia.length} activeIndex={storyFormat === "VIDEO" ? storyVideoIndex : storyImageIndex} onChange={storyFormat === "VIDEO" ? setStoryVideoIndex : setStoryImageIndex} />}
     <div className="mt-3 rounded-xl bg-[#e9f0fa] p-3 sm:p-4">
       <div className="mx-auto max-w-[360px]">
         <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-mahogany/55">{platform === "FACEBOOK" ? "Facebook" : "Instagram"}</p>
-        {placement === "FEED" ? <FeedPost instagram={platform === "INSTAGRAM"} brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} caption={caption} action={action} t={t} />}
+        {placement === "FEED" ? <FeedPost instagram={platform === "INSTAGRAM"} brand={brandLabel} media={feed[feedIndex] ?? feed[0]} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={activeStoryMedia[storyFormat === "VIDEO" ? storyVideoIndex : storyImageIndex] ?? activeStoryMedia[0]} caption={caption} action={action} t={t} />}
       </div>
     </div>
     <p className="mt-3 text-[11px] leading-4 text-mahogany/45">{t.visualGuide}</p>
   </section>;
+}
+
+function CreativeSelector({ count, activeIndex, onChange }: { count: number; activeIndex: number; onChange: (index: number) => void }) {
+  if (count < 2) return null;
+  return <div className="mt-2 flex items-center gap-2"><span className="text-[11px] font-medium text-mahogany/55">Creative</span>{Array.from({ length: count }, (_, index) => <button key={index} type="button" onClick={() => onChange(index)} className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${activeIndex === index ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/60 hover:bg-crystal-soft"}`}>{index + 1}</button>)}</div>;
 }
 
 function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${active ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/60 hover:bg-crystal-soft"}`}>{children}</button>; }
