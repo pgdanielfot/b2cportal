@@ -7,6 +7,7 @@ import { formatLabels } from "@/lib/fileFormats";
 import { getMediaDimensions } from "@/lib/mediaDimensions";
 import ImageThumbnail from "./ImageThumbnail";
 import ManualCropModal from "./ManualCropModal";
+import { translations, type Language } from "@/lib/i18n";
 
 type Field = {
   id: string;
@@ -41,13 +42,16 @@ export default function FileFieldInput({
   useBlobUpload,
   onUploadingChange,
   onPreviewMediaChange,
+  language = "en",
 }: {
   field: Field;
   token: string;
   useBlobUpload: boolean;
   onUploadingChange?: (fieldId: string, uploading: boolean) => void;
   onPreviewMediaChange?: (fieldId: string, media: { url: string; type: string }[]) => void;
+  language?: Language;
 }) {
+  const t = translations[language];
   const inputRef = useRef<HTMLInputElement>(null);
   const [formatError, setFormatError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -253,13 +257,13 @@ export default function FileFieldInput({
             key={issue.file.name}
             className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-sm shadow-sm"
           >
-            <p className="font-semibold text-amber-950">Video needs a different size</p><p className="mt-1 leading-5 text-amber-900/75"><span className="font-medium">{issue.file.name}</span> is {issue.width} × {issue.height}px. Please upload a video sized {field.width} × {field.height}px. Videos cannot be cropped here.</p>
+            <p className="font-semibold text-amber-950">{t.videoNeedsResizing}</p><p className="mt-1 leading-5 text-amber-900/75"><span className="font-medium">{issue.file.name}</span> {t.fileHasDimensions} {issue.width} × {issue.height}px. {t.requiredSize}: {field.width} × {field.height}px. {t.videosCannotCrop}</p>
             <button
               type="button"
               onClick={() => handleRemoveIssue(issue)}
               className="mt-3 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
             >
-              Remove file
+              {t.removeThisFile}
             </button>
           </div>
         ) : (
@@ -269,7 +273,7 @@ export default function FileFieldInput({
           >
             <div className="flex items-center gap-3">
               {issue.previewUrl && <ImageThumbnail src={issue.previewUrl} alt={issue.file.name} />}
-              <div><p className="font-semibold text-amber-950">Image needs resizing</p><p className="mt-1 leading-5 text-amber-900/75"><span className="font-medium">{issue.file.name}</span> is {issue.width} × {issue.height}px. This placement needs {field.width} × {field.height}px.</p></div>
+              <div><p className="font-semibold text-amber-950">{t.imageNeedsResizing}</p><p className="mt-1 leading-5 text-amber-900/75"><span className="font-medium">{issue.file.name}</span> {t.fileHasDimensions} {issue.width} × {issue.height}px. {t.requiredSize}: {field.width} × {field.height}px.</p></div>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
@@ -278,21 +282,21 @@ export default function FileFieldInput({
                 disabled={processingName === issue.file.name}
                 className="rounded-lg bg-ignite px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-ignite-hover disabled:opacity-50"
               >
-                {processingName === issue.file.name ? "Resizing…" : "Resize automatically"}
+                {processingName === issue.file.name ? "…" : t.resizeAutomatically}
               </button>
               <button
                 type="button"
                 onClick={() => setManualCropTarget(issue)}
                 className="rounded-lg border border-crystal bg-white px-3 py-1.5 text-xs font-semibold text-mahogany hover:bg-crystal-soft"
               >
-                Crop manually
+                {t.cropManually}
               </button>
               <button
                 type="button"
                 onClick={() => handleRemoveIssue(issue)}
                 className="rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50"
               >
-                Remove this file
+                {t.removeThisFile}
               </button>
             </div>
           </div>

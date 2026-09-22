@@ -55,6 +55,15 @@ type Dictionary = {
   materialsReady: string;
   addCampaignDetails: string;
   campaignBriefHint: string;
+  imageNeedsResizing: string;
+  videoNeedsResizing: string;
+  placementNeedsSize: string;
+  videosCannotCrop: string;
+  resizeAutomatically: string;
+  cropManually: string;
+  removeThisFile: string;
+  fileHasDimensions: string;
+  requiredSize: string;
 };
 
 export const translations: Record<Language, Dictionary> = {
@@ -107,6 +116,15 @@ export const translations: Record<Language, Dictionary> = {
     materialsReady: "Your materials are ready to review.",
     addCampaignDetails: "Add your campaign details and creative materials.",
     campaignBriefHint: "Complete the required details below to prepare your campaign.",
+    imageNeedsResizing: "Image needs resizing",
+    videoNeedsResizing: "Video needs a different size",
+    placementNeedsSize: "This placement needs",
+    videosCannotCrop: "Videos cannot be cropped here.",
+    resizeAutomatically: "Resize automatically",
+    cropManually: "Crop manually",
+    removeThisFile: "Remove this file",
+    fileHasDimensions: "has dimensions",
+    requiredSize: "Required size",
   },
   ms: {
     chooseLanguage: "Pilih bahasa anda",
@@ -157,6 +175,15 @@ export const translations: Record<Language, Dictionary> = {
     materialsReady: "Bahan anda sedia untuk disemak.",
     addCampaignDetails: "Tambahkan butiran kempen dan bahan kreatif anda.",
     campaignBriefHint: "Lengkapkan butiran yang diperlukan di bawah untuk menyediakan kempen anda.",
+    imageNeedsResizing: "Imej perlu diubah saiz",
+    videoNeedsResizing: "Video memerlukan saiz yang berbeza",
+    placementNeedsSize: "Penempatan ini memerlukan",
+    videosCannotCrop: "Video tidak boleh dipangkas di sini.",
+    resizeAutomatically: "Ubah saiz secara automatik",
+    cropManually: "Pangkas secara manual",
+    removeThisFile: "Buang fail ini",
+    fileHasDimensions: "mempunyai dimensi",
+    requiredSize: "Saiz diperlukan",
   },
   zh: {
     chooseLanguage: "请选择您的语言",
@@ -207,6 +234,15 @@ export const translations: Record<Language, Dictionary> = {
     materialsReady: "您的素材已准备好供您查看。",
     addCampaignDetails: "填写广告详情并上传创意素材。",
     campaignBriefHint: "请填写以下必填资料以准备您的广告活动。",
+    imageNeedsResizing: "图片需要调整尺寸",
+    videoNeedsResizing: "视频尺寸不符合要求",
+    placementNeedsSize: "此广告位需要",
+    videosCannotCrop: "视频无法在此处裁剪。",
+    resizeAutomatically: "自动调整尺寸",
+    cropManually: "手动裁剪",
+    removeThisFile: "移除此文件",
+    fileHasDimensions: "尺寸为",
+    requiredSize: "所需尺寸",
   },
 };
 

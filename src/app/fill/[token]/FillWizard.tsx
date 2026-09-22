@@ -469,6 +469,7 @@ export default function FillWizard({
                     field={{ ...field, label: localizedLabel(field) }}
                     token={token}
                     useBlobUpload={useBlobUpload}
+                    language={language ?? "en"}
                     onUploadingChange={handleUploadingChange}
                     onPreviewMediaChange={handlePreviewMediaChange}
                   />
