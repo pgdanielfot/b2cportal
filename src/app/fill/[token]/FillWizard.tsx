@@ -43,6 +43,8 @@ type Step = {
   condition?: Condition;
 };
 
+type SubmittedAsset = { name: string; url: string; type: string; label: string; width?: number | null; height?: number | null };
+
 export default function FillWizard({
   token,
   productName,
@@ -277,6 +279,9 @@ export default function FillWizard({
 
   if (done) {
     const submittedAssetCount = uploadedSummary.reduce((count, group) => count + group.files.length, 0);
+    const submittedAssets: SubmittedAsset[] = uploadedSummary.flatMap((group) => group.files.map((file) => ({ ...file, label: group.label, width: group.width, height: group.height })));
+    const feedAssets = submittedAssets.filter((asset) => /feed/i.test(asset.label));
+    const storyAssets = submittedAssets.filter((asset) => !/feed/i.test(asset.label));
     return (
       <div className="mx-auto max-w-3xl space-y-5 py-4">
         <section className="overflow-hidden rounded-3xl border border-crystal bg-white shadow-xl shadow-[#172b5412]">
@@ -294,11 +299,7 @@ export default function FillWizard({
         </section>
 
         {uploadedSummary.length > 0 && (
-          <section className="rounded-3xl border border-crystal bg-white p-5 shadow-sm sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-mahogany/50">Creative kit</p><h2 className="mt-1 text-lg font-bold text-mahogany">Materials received</h2><p className="mt-1 text-sm text-mahogany/55">Shown in the dimensions requested for each placement.</p></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">{submittedAssetCount} {submittedAssetCount === 1 ? "asset" : "assets"}</span></div><div className="mt-5 flex flex-wrap items-start gap-4">{uploadedSummary.flatMap((group) => group.files.map((file) => ({ ...file, label: group.label, width: group.width, height: group.height }))).map((file) => <div key={file.url} className="w-[min(100%,_13rem)]"><div className="group relative w-full overflow-hidden rounded-2xl border border-crystal bg-crystal-soft shadow-sm" style={{ aspectRatio: file.width && file.height ? `${file.width} / ${file.height}` : /story/i.test(file.label) ? "9 / 16" : "1 / 1" }}>{file.type.startsWith("video/") ? <video src={file.url} className="h-full w-full object-cover" muted playsInline preload="metadata" /> : <>
-            {/* Object URLs and Blob URLs cannot reliably be optimized by next/image. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={file.url} alt={file.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-          </>}<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-2 pt-7 text-[10px] font-bold uppercase tracking-wide text-white">{file.type.startsWith("video/") && "▶ "}{file.label.replace(" (Optional)", "")}</div></div><p className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wide text-mahogany/50">{file.width && file.height ? `${file.width} × ${file.height}` : /story/i.test(file.label) ? "9:16 Story" : "1:1 Feed"}</p></div>)}</div></section>
+          <section className="rounded-3xl border border-crystal bg-white p-5 shadow-sm sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-mahogany/50">Creative kit</p><h2 className="mt-1 text-lg font-bold text-mahogany">Materials received</h2><p className="mt-1 text-sm text-mahogany/55">Organised by placement and shown at the requested proportions.</p></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">{submittedAssetCount} {submittedAssetCount === 1 ? "asset" : "assets"}</span></div><div className="mt-6 grid gap-6 lg:grid-cols-2">{feedAssets.length > 0 && <PlacementGroup title="Feed creative" subtitle="Square placement" assets={feedAssets} />}{storyAssets.length > 0 && <PlacementGroup title="Story creative" subtitle="Vertical placement" assets={storyAssets} />}</div></section>
         )}
       </div>
     );
@@ -542,4 +543,17 @@ export default function FillWizard({
       </div>
     </div>
   );
+}
+
+function PlacementGroup({ title, subtitle, assets }: { title: string; subtitle: string; assets: SubmittedAsset[] }) {
+  return <section className="rounded-2xl border border-crystal bg-[#fbfcff] p-4"><div className="mb-4 flex items-center justify-between"><div><h3 className="text-sm font-bold text-mahogany">{title}</h3><p className="mt-0.5 text-xs text-mahogany/50">{subtitle}</p></div><span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-mahogany/55 shadow-sm">{assets.length} {assets.length === 1 ? "creative" : "creatives"}</span></div><div className={/Feed/i.test(title) ? "grid grid-cols-2 gap-3" : "grid grid-cols-2 items-start gap-3"}>{assets.map((asset) => <CreativeAssetCard key={asset.url} asset={asset} />)}</div></section>;
+}
+
+function CreativeAssetCard({ asset }: { asset: SubmittedAsset }) {
+  const ratio = asset.width && asset.height ? `${asset.width} / ${asset.height}` : /stor(y|ies)/i.test(asset.label) ? "9 / 16" : "1 / 1";
+  return <div className="min-w-0"><div className="group relative overflow-hidden rounded-xl border border-crystal bg-crystal-soft shadow-sm" style={{ aspectRatio: ratio }}>{asset.type.startsWith("video/") ? <video src={asset.url} className="h-full w-full object-cover" muted playsInline preload="metadata" controls /> : <>
+    {/* Object URLs and Blob URLs cannot reliably be optimized by next/image. */}
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={asset.url} alt={asset.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+  </>}<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-2.5 pb-2 pt-7 text-[9px] font-bold uppercase tracking-wide text-white">{asset.type.startsWith("video/") && "▶ "}{asset.label.replace(" (Optional)", "")}</div></div><p className="mt-2 truncate text-center text-[10px] font-semibold uppercase tracking-wide text-mahogany/50">{asset.width && asset.height ? `${asset.width} × ${asset.height}` : ratio}</p></div>;
 }
