@@ -21,7 +21,7 @@ export default function LiveAdPreview({ brand, feedMedia, storyImage, storyVideo
   const [platform, setPlatform] = useState<"FACEBOOK" | "INSTAGRAM">("FACEBOOK");
   const t = translations[language];
   const action = localizeCommonContent(cta || t.learnMore, language);
-  const brandLabel = brand === "PropertyGuru" || brand === "iProperty" ? brand : "PropertyGuru / iProperty";
+  const brandLabel = /propertyguru.*\+.*iproperty|both/i.test(brand ?? "") ? "PropertyGuru / iProperty" : /iproperty|ipp/i.test(brand ?? "") ? "iProperty" : /propertyguru|\bpg\b/i.test(brand ?? "") ? "PropertyGuru" : "PropertyGuru / iProperty";
 
   return <section className="rounded-2xl border border-crystal bg-white p-4 shadow-sm">
     <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-mahogany">{t.liveAdPreview}</h2><p className="text-xs text-mahogany/55">Preview Iklan Langsung · 实时广告预览</p></div><span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">● LIVE</span></div>
@@ -51,7 +51,7 @@ function FeedPost({ instagram, brand, media, caption, action, destination, t }: 
 }
 
 function StoryPost({ brand, media, caption, action, t }: { brand: string; media?: Media; caption?: string; action: string; t: (typeof translations)[Language] }) {
-  return <div className="mx-auto w-full max-w-[220px] overflow-hidden rounded-[1.4rem] border-[5px] border-[#111b30] bg-[#111b30] shadow-[0_16px_30px_rgba(20,35,60,0.28)]">
+  return <div className="mx-auto w-full max-w-[300px] overflow-hidden rounded-[1.7rem] border-[6px] border-[#111b30] bg-[#111b30] shadow-[0_18px_34px_rgba(20,35,60,0.3)]">
     <div className="relative aspect-[9/16] overflow-hidden bg-[#dce6f5]">
       <Creative media={media} ratio="9 / 16" full t={t} />
       <div className="absolute inset-x-3 top-3 h-0.5 rounded bg-white/55"><div className="h-full w-2/3 rounded bg-white" /></div>

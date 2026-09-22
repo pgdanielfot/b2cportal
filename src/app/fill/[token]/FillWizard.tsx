@@ -77,10 +77,10 @@ export default function FillWizard({
 
   const t = translations[language ?? "en"];
   const isUploading = uploadingFields.size > 0;
-  const brandField = steps.flatMap((step) => step.fields).find((field) => /advertise as|brand/i.test(field.label));
+  const brandField = steps.flatMap((step) => step.fields).find((field) => /advertise as|brand|where would you like to advertise/i.test(field.label) && field.type === "DROPDOWN");
   const captionField = steps.flatMap((step) => step.fields).find((field) => /caption/i.test(field.label));
   const ctaField = steps.flatMap((step) => step.fields).find((field) => /call.?to.?action|\bcta\b/i.test(field.label));
-  const destinationField = steps.flatMap((step) => step.fields).find((field) => /where would you like to advertise|listing.*url|profile.*url/i.test(field.label));
+  const destinationField = steps.flatMap((step) => step.fields).find((field) => /agent listing url|listing.*url|profile.*url/i.test(field.label) && field.type === "URL");
   const showCampaignPreview = Boolean(campaignUrl && (brandField || captionField || ctaField || destinationField));
   const mediaEntries = Object.entries(previewMedia);
   const feedMedia = mediaEntries.find(([fieldId, media]) => Boolean(media) && /feed/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1]
