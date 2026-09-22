@@ -2,7 +2,9 @@ type File = { url: string; name: string; type: string };
 
 export default function SubmissionMediaSummary({ media }: { media: { label: string; width?: number | null; height?: number | null; files: File[] }[] }) {
   if (media.length === 0) return <p className="mt-3 text-xs text-mahogany/50">No creative materials were submitted.</p>;
-  const assets = media.flatMap((group) => group.files.map((file) => ({ ...file, label: group.label, width: group.width, height: group.height })));
+  const assets = media
+    .flatMap((group) => group.files.map((file) => ({ ...file, label: group.label, width: group.width, height: group.height })))
+    .sort((a, b) => placementOrder(a.label) - placementOrder(b.label));
   return <div className="mt-5">
     <div className="mb-2 flex items-center justify-between"><p className="text-[11px] font-bold uppercase tracking-[0.12em] text-mahogany/50">Creative kit</p><span className="rounded-full bg-crystal-soft px-2 py-0.5 text-[10px] font-semibold text-mahogany/60">{assets.length} {assets.length === 1 ? "asset" : "assets"}</span></div>
     <div className="flex flex-wrap items-start gap-2">
@@ -17,4 +19,11 @@ export default function SubmissionMediaSummary({ media }: { media: { label: stri
       </figure>)}
     </div>
   </div>;
+}
+
+function placementOrder(label: string) {
+  if (/story/i.test(label) && !/video/i.test(label)) return 0;
+  if (/feed/i.test(label)) return 1;
+  if (/story/i.test(label) && /video/i.test(label)) return 2;
+  return 3;
 }
