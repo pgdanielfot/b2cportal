@@ -59,9 +59,7 @@ function StoryPost({ brand, media, caption, action }: { brand: string; media?: M
 
 function Avatar({ brand }: { brand: string }) {
   if (brand === "PropertyGuru / iProperty") {
-    return <span aria-label="PropertyGuru and iProperty" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#8a919b] text-[8px] font-bold tracking-tight text-white shadow-sm">
-      PG/iP
-    </span>;
+    return <span aria-label="PropertyGuru and iProperty" className="flex h-9 w-9 shrink-0 rounded-full bg-[#8a919b] shadow-sm" />;
   }
   if (brand === "PropertyGuru") {
     return <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-sm">
