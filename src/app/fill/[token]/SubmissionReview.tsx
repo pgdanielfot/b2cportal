@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 type File = { url: string; name: string; type: string };
-type Field = { id: string; label: string; type: string };
+type Field = { id: string; label: string; type: string; width?: number | null; height?: number | null };
 type Step = { id: string; title: string; fields: Field[] };
 type Value = { fieldId: string; value: string | null; files: File[] | null };
 
@@ -29,12 +29,14 @@ export default function SubmissionReview({ productName, steps, values, campaignU
 function ReviewField({ field, value }: { field: Field; value?: Value }) {
   const files = value?.files ?? [];
   if (field.type !== "FILE") return <div><p className="text-[11px] font-bold uppercase tracking-wide text-mahogany/55">{field.label}</p><p className="mt-1 whitespace-pre-wrap rounded-xl bg-crystal-soft px-3 py-2.5 text-sm text-mahogany">{value?.value || "—"}</p></div>;
-  return <div><p className="text-[11px] font-bold uppercase tracking-wide text-mahogany/55">{field.label}</p><div className="mt-2 flex flex-wrap gap-3">{files.length > 0 ? files.map((file) => <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="group relative block h-24 w-24 overflow-hidden rounded-xl border border-crystal bg-crystal-soft">
+  const aspectRatio = field.width && field.height ? `${field.width} / ${field.height}` : /story/i.test(field.label) ? "9 / 16" : "1 / 1";
+  const dimensions = field.width && field.height ? `${field.width} × ${field.height}` : /story/i.test(field.label) ? "9:16 Story" : "1:1 Feed";
+  return <div><div className="flex items-center justify-between gap-3"><p className="text-[11px] font-bold uppercase tracking-wide text-mahogany/55">{field.label}</p><span className="text-[10px] font-semibold text-mahogany/45">{dimensions}</span></div><div className="mt-2 flex flex-wrap gap-3">{files.length > 0 ? files.map((file) => <div key={file.url} className="w-[min(100%,_12rem)]"><a href={file.url} target="_blank" rel="noreferrer" className="group relative block w-full overflow-hidden rounded-xl border border-crystal bg-crystal-soft shadow-sm" style={{ aspectRatio }}>
     {file.type.startsWith("video/") ? <video src={file.url} className="h-full w-full object-cover" muted playsInline preload="metadata" /> : <>
       {/* Review links may point to Blob or local upload URLs, so next/image cannot reliably optimize them. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={file.url} alt={file.name} className="h-full w-full object-cover" />
     </>}
     <span className="absolute inset-x-0 bottom-0 bg-black/60 px-1.5 py-1 text-[9px] font-semibold text-white">{file.type.startsWith("video/") ? "▶ Video" : "View image"}</span>
-  </a>) : <p className="mt-1 text-sm text-mahogany/45">No file submitted.</p>}</div></div>;
+  </a></div>) : <p className="mt-1 text-sm text-mahogany/45">No file submitted.</p>}</div></div>;
 }
