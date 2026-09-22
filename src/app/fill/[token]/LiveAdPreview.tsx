@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { translations, type Language } from "@/lib/i18n";
+import { localizeCommonContent, translations, type Language } from "@/lib/i18n";
 
 type Props = {
   brand?: string;
@@ -18,26 +18,23 @@ export type Media = { url: string; type: string };
 export default function LiveAdPreview({ brand, feedMedia, storyImage, storyVideo, caption, cta, destination, language = "en" }: Props) {
   const [placement, setPlacement] = useState<"FEED" | "STORY">("FEED");
   const [storyFormat, setStoryFormat] = useState<"IMAGE" | "VIDEO">("IMAGE");
+  const [platform, setPlatform] = useState<"FACEBOOK" | "INSTAGRAM">("FACEBOOK");
   const t = translations[language];
-  const action = cta || t.learnMore;
+  const action = localizeCommonContent(cta || t.learnMore, language);
   const brandLabel = brand === "PropertyGuru" || brand === "iProperty" ? brand : "PropertyGuru / iProperty";
 
   return <section className="rounded-2xl border border-crystal bg-white p-4 shadow-sm">
-    <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-mahogany">{t.liveAdPreview}</h2><p className="text-xs text-mahogany/55">Facebook &amp; Instagram · Preview Iklan Langsung</p></div><span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">● LIVE</span></div>
-    <div className="mt-3 flex gap-2"><Tab active={placement === "FEED"} onClick={() => setPlacement("FEED")}>{t.feed}</Tab><Tab active={placement === "STORY"} onClick={() => setPlacement("STORY")}>{t.story}</Tab></div>
+    <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-mahogany">{t.liveAdPreview}</h2><p className="text-xs text-mahogany/55">Preview Iklan Langsung · 实时广告预览</p></div><span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">● LIVE</span></div>
+    <div className="mt-3 flex flex-wrap gap-2"><Tab active={platform === "FACEBOOK"} onClick={() => setPlatform("FACEBOOK")}>Facebook</Tab><Tab active={platform === "INSTAGRAM"} onClick={() => setPlatform("INSTAGRAM")}>Instagram</Tab><span className="mx-1 hidden h-7 w-px bg-crystal sm:block" /><Tab active={placement === "FEED"} onClick={() => setPlacement("FEED")}>{t.feed}</Tab><Tab active={placement === "STORY"} onClick={() => setPlacement("STORY")}>{t.story}</Tab></div>
     {placement === "STORY" && storyVideo && <div className="mt-2 flex gap-2 text-[11px]"><button type="button" onClick={() => setStoryFormat("IMAGE")} className={`rounded px-2 py-1 ${storyFormat === "IMAGE" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyImage}</button><button type="button" onClick={() => setStoryFormat("VIDEO")} className={`rounded px-2 py-1 ${storyFormat === "VIDEO" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyVideo}</button></div>}
     <div className="mt-3 rounded-xl bg-[#e9f0fa] p-3 sm:p-4">
-      <div className={`grid gap-4 ${placement === "FEED" ? "grid-cols-1 min-[440px]:grid-cols-2" : "grid-cols-2"}`}>
-        <PlatformPreview name="Facebook">{placement === "FEED" ? <FeedPost instagram={false} brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} caption={caption} action={action} t={t} />}</PlatformPreview>
-        <PlatformPreview name="Instagram">{placement === "FEED" ? <FeedPost instagram brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} caption={caption} action={action} t={t} />}</PlatformPreview>
+      <div className="mx-auto max-w-[360px]">
+        <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-mahogany/55">{platform === "FACEBOOK" ? "Facebook" : "Instagram"}</p>
+        {placement === "FEED" ? <FeedPost instagram={platform === "INSTAGRAM"} brand={brandLabel} media={feedMedia} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={storyFormat === "VIDEO" ? storyVideo : storyImage} caption={caption} action={action} t={t} />}
       </div>
     </div>
     <p className="mt-3 text-[11px] leading-4 text-mahogany/45">{t.visualGuide}</p>
   </section>;
-}
-
-function PlatformPreview({ name, children }: { name: "Facebook" | "Instagram"; children: React.ReactNode }) {
-  return <div className="min-w-0"><p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-mahogany/55">{name}</p>{children}</div>;
 }
 
 function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${active ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/60 hover:bg-crystal-soft"}`}>{children}</button>; }

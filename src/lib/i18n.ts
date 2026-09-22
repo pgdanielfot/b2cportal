@@ -175,6 +175,11 @@ const commonContent: Record<Exclude<Language, "en">, Record<string, string>> = {
     "story image": "Imej cerita",
     "story video (optional)": "Video cerita (pilihan)",
     "additional notes": "Nota tambahan",
+    "contact us": "Hubungi Kami",
+    "sign up": "Daftar",
+    "book now": "Tempah Sekarang",
+    "get offer": "Dapatkan Tawaran",
+    "get quote": "Dapatkan Sebut Harga",
   },
   zh: {
     "campaign details": "广告详情",
@@ -188,6 +193,11 @@ const commonContent: Record<Exclude<Language, "en">, Record<string, string>> = {
     "story image": "快拍图片",
     "story video (optional)": "快拍视频（可选）",
     "additional notes": "附加说明",
+    "contact us": "联系我们",
+    "sign up": "注册",
+    "book now": "立即预订",
+    "get offer": "获取优惠",
+    "get quote": "获取报价",
   },
 };
 
