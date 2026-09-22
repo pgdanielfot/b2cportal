@@ -3,7 +3,6 @@
 import { useRef, useState, useTransition } from "react";
 import { submitFillForm } from "@/app/actions/submissions";
 import FileFieldInput from "./FileFieldInput";
-import ImageThumbnail from "./ImageThumbnail";
 import LiveAdPreview, { type Media } from "./LiveAdPreview";
 import { isConditionMet, type Condition } from "@/lib/conditions";
 import { LANGUAGES, translations, type Language } from "@/lib/i18n";
@@ -280,45 +279,29 @@ export default function FillWizard({
   }
 
   if (done) {
+    const submittedAssetCount = uploadedSummary.reduce((count, group) => count + group.files.length, 0);
     return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-crystal bg-white p-8 text-center space-y-2">
-          <p className="text-2xl">✅</p>
-          <h1 className="text-lg font-semibold text-mahogany">{t.thankYou}</h1>
-          <p className="text-sm text-mahogany/60">{t.submissionReceived}</p>
+      <div className="mx-auto max-w-3xl space-y-5 py-4">
+        <section className="overflow-hidden rounded-3xl border border-crystal bg-white shadow-xl shadow-[#172b5412]">
+          <div className="bg-[linear-gradient(135deg,_#edf4ff,_#ffffff_65%)] px-6 py-9 text-center sm:px-10"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2169df] text-3xl font-bold text-white shadow-lg shadow-blue-200">✓</div><p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#2169df]">Campaign submitted</p><h1 className="mt-1 text-2xl font-bold text-mahogany">{t.thankYou}</h1><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-mahogany/60">{t.submissionReceived} Your campaign materials have been securely saved for the FOT team.</p></div>
+          <div className="flex flex-col gap-3 border-t border-crystal px-6 py-5 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-mahogany/60">You can revisit this campaign at any time to review it.</p>
           {campaignUrl && (
             <a
               href={campaignUrl}
-              className="mt-4 inline-block rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover"
+              className="inline-flex shrink-0 items-center justify-center rounded-xl bg-ignite px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ignite-hover"
             >
-              Back to all campaigns
+              View all campaigns →
             </a>
           )}
-        </div>
+          </div>
+        </section>
 
         {uploadedSummary.length > 0 && (
-          <div className="rounded-lg border border-crystal bg-white p-6 space-y-4">
-            <h2 className="font-medium text-mahogany">{t.uploadedFiles}</h2>
-            {uploadedSummary.map((group) => (
-              <div key={group.label} className="space-y-2">
-                <p className="text-sm font-medium text-mahogany/70">{group.label}</p>
-                <div className="flex flex-wrap gap-2">
-                  {group.files.map((f) =>
-                    f.type.startsWith("image/") ? (
-                      <ImageThumbnail key={f.url} src={f.url} alt={f.name} />
-                    ) : (
-                      <div
-                        key={f.url}
-                        className="flex h-16 w-16 flex-col items-center justify-center rounded border border-crystal bg-crystal-soft p-1 text-center text-[10px] text-mahogany/70"
-                      >
-                        <span className="truncate w-full">{f.name}</span>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <section className="rounded-3xl border border-crystal bg-white p-5 shadow-sm sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-mahogany/50">Creative kit</p><h2 className="mt-1 text-lg font-bold text-mahogany">Materials received</h2><p className="mt-1 text-sm text-mahogany/55">A quick review of the files included in this submission.</p></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">{submittedAssetCount} {submittedAssetCount === 1 ? "asset" : "assets"}</span></div><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{uploadedSummary.flatMap((group) => group.files.map((file) => ({ ...file, label: group.label }))).map((file) => <div key={file.url} className="group relative aspect-square overflow-hidden rounded-2xl border border-crystal bg-crystal-soft shadow-sm">{file.type.startsWith("video/") ? <video src={file.url} className="h-full w-full object-cover" muted playsInline preload="metadata" /> : <>
+            {/* Object URLs and Blob URLs cannot reliably be optimized by next/image. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={file.url} alt={file.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+          </>}<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-2 pt-7 text-[10px] font-bold uppercase tracking-wide text-white">{file.type.startsWith("video/") && "▶ "}{file.label.replace(" (Optional)", "")}</div></div>)}</div></section>
         )}
       </div>
     );
