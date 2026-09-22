@@ -10,16 +10,19 @@ export default async function ProductPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ created?: string }>;
+  searchParams: Promise<{ createdCampaign?: string }>;
 }) {
   const { id } = await params;
-  const { created } = await searchParams;
+  const { createdCampaign } = await searchParams;
 
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
       steps: { orderBy: { order: "asc" }, include: { fields: { orderBy: { order: "asc" } } } },
-      submissions: { orderBy: { createdAt: "desc" } },
+      campaigns: {
+        orderBy: { createdAt: "desc" },
+        include: { submissions: { select: { status: true } } },
+      },
     },
   });
 
@@ -67,13 +70,14 @@ export default async function ProductPage({
       <ProductBuilder initial={draft} />
       <SubmissionsPanel
         productId={product.id}
-        createdToken={created}
-        submissions={product.submissions.map((s) => ({
-          id: s.id,
-          soNumber: s.soNumber,
-          status: s.status,
-          shareToken: s.shareToken,
-          createdAt: s.createdAt.toISOString(),
+        createdCampaign={createdCampaign}
+        campaigns={product.campaigns.map((campaign) => ({
+          id: campaign.id,
+          soNumber: campaign.soNumber,
+          quantity: campaign.quantity,
+          shareToken: campaign.shareToken,
+          createdAt: campaign.createdAt.toISOString(),
+          completed: campaign.submissions.filter((submission) => submission.status === "SUBMITTED").length,
         }))}
       />
     </div>

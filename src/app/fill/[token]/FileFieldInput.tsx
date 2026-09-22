@@ -40,17 +40,20 @@ export default function FileFieldInput({
   token,
   useBlobUpload,
   onUploadingChange,
+  onPreviewMediaChange,
 }: {
   field: Field;
   token: string;
   useBlobUpload: boolean;
   onUploadingChange?: (fieldId: string, uploading: boolean) => void;
+  onPreviewMediaChange?: (fieldId: string, media: { url: string; type: string }[]) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [formatError, setFormatError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [issues, setIssues] = useState<DimensionIssue[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
+  const [readyFiles, setReadyFiles] = useState<File[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [processingName, setProcessingName] = useState<string | null>(null);
@@ -68,9 +71,12 @@ export default function FileFieldInput({
     const next = files.map((f) => ({ name: f.name, url: URL.createObjectURL(f), type: f.type }));
     objectUrls.current = next.map((p) => p.url);
     setPreviews(next);
+    onPreviewMediaChange?.(field.id, next.filter((item) => item.type.startsWith("image/") || item.type.startsWith("video/")).map(({ url, type }) => ({ url, type })));
   }
 
   async function syncReadyFiles(files: File[]) {
+    setReadyFiles(files);
+    replaceInputFiles(files);
     setPreviewsFor(files);
     setUploadError(null);
 
@@ -115,10 +121,16 @@ export default function FileFieldInput({
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFormatError(null);
     setIssues([]);
-    await syncReadyFiles([]);
 
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
+
+    const maxFiles = field.maxFiles ?? 1;
+    if (readyFiles.length + files.length > maxFiles) {
+      setFormatError(`This field allows at most ${maxFiles} file(s). You already have ${readyFiles.length} selected.`);
+      replaceInputFiles(readyFiles);
+      return;
+    }
 
     if (field.allowedTypes.length > 0) {
       const bad = files.filter((f) => !field.allowedTypes.includes(f.type));
@@ -126,7 +138,7 @@ export default function FileFieldInput({
         setFormatError(
           `"${bad.map((f) => f.name).join(", ")}" is not an accepted format. Allowed: ${formatLabels(field.allowedTypes)}.`,
         );
-        e.target.value = "";
+        replaceInputFiles(readyFiles);
         return;
       }
     }
@@ -135,7 +147,7 @@ export default function FileFieldInput({
     const tooBig = files.filter((f) => f.size > maxSizeMb * 1024 * 1024);
     if (tooBig.length > 0) {
       setFormatError(`"${tooBig.map((f) => f.name).join(", ")}" exceeds the ${maxSizeMb}MB limit.`);
-      e.target.value = "";
+      replaceInputFiles(readyFiles);
       return;
     }
 
@@ -157,16 +169,16 @@ export default function FileFieldInput({
           })),
         );
       }
-      await syncReadyFiles(ok.map((c) => c.file));
+      await syncReadyFiles([...readyFiles, ...ok.map((c) => c.file)]);
       return;
     }
 
-    await syncReadyFiles(files);
+    await syncReadyFiles([...readyFiles, ...files]);
   }
 
-  function removeFileFromInput(file: File) {
-    const current = Array.from(inputRef.current?.files ?? []).filter((f) => f !== file);
-    replaceInputFiles(current);
+  async function removeReadyPreview(preview: Preview) {
+    const remaining = readyFiles.filter((file) => file.name !== preview.name);
+    await syncReadyFiles(remaining);
   }
 
   async function handleAutoCrop(issue: DimensionIssue) {
@@ -181,9 +193,8 @@ export default function FileFieldInput({
   }
 
   async function applyFixedFile(issue: DimensionIssue, fixed: File) {
-    const current = Array.from(inputRef.current?.files ?? []);
-    const updated = current.map((f) => (f === issue.file ? fixed : f));
-    replaceInputFiles(updated);
+    const existingIndex = readyFiles.indexOf(issue.file);
+    const updated = existingIndex >= 0 ? readyFiles.map((file) => (file === issue.file ? fixed : file)) : [...readyFiles, fixed];
     if (issue.previewUrl) URL.revokeObjectURL(issue.previewUrl);
 
     const remainingIssues = issues.filter((i) => i.file !== issue.file);
@@ -192,13 +203,14 @@ export default function FileFieldInput({
   }
 
   function handleRemoveIssue(issue: DimensionIssue) {
-    removeFileFromInput(issue.file);
+    replaceInputFiles(readyFiles);
     if (issue.previewUrl) URL.revokeObjectURL(issue.previewUrl);
     setIssues((prev) => prev.filter((i) => i.file !== issue.file));
   }
 
   return (
     <>
+      <div className="space-y-3">
       <input
         ref={inputRef}
         type="file"
@@ -227,16 +239,10 @@ export default function FileFieldInput({
       {previews.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {previews.map((p) =>
-            p.type.startsWith("image/") ? (
-              <ImageThumbnail key={p.url} src={p.url} alt={p.name} />
-            ) : (
-              <div
-                key={p.url}
-                className="flex h-16 w-16 flex-col items-center justify-center rounded border border-crystal bg-crystal-soft p-1 text-center text-[10px] text-mahogany/70"
-              >
-                <span className="truncate w-full">{p.name}</span>
-              </div>
-            ),
+            <div key={p.url} className="relative">
+              {p.type.startsWith("image/") ? <ImageThumbnail src={p.url} alt={p.name} /> : <div className="flex h-16 w-16 flex-col items-center justify-center rounded border border-crystal bg-crystal-soft p-1 text-center text-[10px] text-mahogany/70"><span className="truncate w-full">{p.name}</span></div>}
+              <button type="button" onClick={() => void removeReadyPreview(p)} className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow hover:bg-red-700" aria-label={`Remove ${p.name}`}>×</button>
+            </div>,
           )}
         </div>
       )}
@@ -299,6 +305,7 @@ export default function FileFieldInput({
           </div>
         ),
       )}
+      </div>
 
       {manualCropTarget && field.width && field.height && (
         <ManualCropModal

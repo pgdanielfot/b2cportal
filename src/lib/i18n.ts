@@ -24,6 +24,25 @@ type Dictionary = {
   alreadySubmittedDesc: string;
   viewAdSamples: string;
   disclaimerAgree: string;
+  campaignSetup: string;
+  beforeWeStart: string;
+  campaignIntakeHint: string;
+  preferredLanguage: string;
+  fullName: string;
+  agentId: string;
+  continueToMaterials: string;
+  saving: string;
+  liveAdPreview: string;
+  feed: string;
+  story: string;
+  storyImage: string;
+  storyVideo: string;
+  visualGuide: string;
+  previewPlaceholder: string;
+  uploadCreativeHint: string;
+  campaignCaptionHint: string;
+  learnMore: string;
+  paragraphHint: string;
 };
 
 export const translations: Record<Language, Dictionary> = {
@@ -45,6 +64,25 @@ export const translations: Record<Language, Dictionary> = {
     alreadySubmittedDesc: "This form has already been completed.",
     viewAdSamples: "View ad samples",
     disclaimerAgree: "I have read and agreed to the above.",
+    campaignSetup: "Campaign setup",
+    beforeWeStart: "Before we start",
+    campaignIntakeHint: "Choose your language and provide your details once. They will be used for all campaign material submissions.",
+    preferredLanguage: "Preferred language",
+    fullName: "Full name",
+    agentId: "Agent ID",
+    continueToMaterials: "Continue to campaign materials",
+    saving: "Saving...",
+    liveAdPreview: "Live Ad Preview",
+    feed: "Feed",
+    story: "Story",
+    storyImage: "Story image",
+    storyVideo: "Story video",
+    visualGuide: "Live visual guide only. The final display can vary by device and platform settings.",
+    previewPlaceholder: "Preview placeholder",
+    uploadCreativeHint: "Upload creative to see your ad",
+    campaignCaptionHint: "Your campaign caption will appear here.",
+    learnMore: "Learn More",
+    paragraphHint: "You can write multiple paragraphs — press Enter to start a new line.",
   },
   ms: {
     chooseLanguage: "Pilih bahasa anda",
@@ -64,6 +102,25 @@ export const translations: Record<Language, Dictionary> = {
     alreadySubmittedDesc: "Borang ini telah pun lengkap dihantar.",
     viewAdSamples: "Lihat contoh iklan",
     disclaimerAgree: "Saya telah membaca dan bersetuju dengan perkara di atas.",
+    campaignSetup: "Persediaan kempen",
+    beforeWeStart: "Sebelum kita bermula",
+    campaignIntakeHint: "Pilih bahasa anda dan berikan maklumat anda sekali sahaja. Ia akan digunakan untuk semua penyerahan bahan kempen.",
+    preferredLanguage: "Bahasa pilihan",
+    fullName: "Nama penuh",
+    agentId: "ID ejen",
+    continueToMaterials: "Teruskan ke bahan kempen",
+    saving: "Menyimpan...",
+    liveAdPreview: "Pratonton Iklan Langsung",
+    feed: "Suapan",
+    story: "Cerita",
+    storyImage: "Imej cerita",
+    storyVideo: "Video cerita",
+    visualGuide: "Panduan visual langsung sahaja. Paparan akhir mungkin berbeza mengikut peranti dan tetapan platform.",
+    previewPlaceholder: "Ruang pratonton",
+    uploadCreativeHint: "Muat naik bahan kreatif untuk melihat iklan anda",
+    campaignCaptionHint: "Kapsyen kempen anda akan dipaparkan di sini.",
+    learnMore: "Ketahui Lebih Lanjut",
+    paragraphHint: "Anda boleh menulis beberapa perenggan — tekan Enter untuk memulakan baris baharu.",
   },
   zh: {
     chooseLanguage: "请选择您的语言",
@@ -83,5 +140,69 @@ export const translations: Record<Language, Dictionary> = {
     alreadySubmittedDesc: "此表格已完成提交。",
     viewAdSamples: "查看广告示例",
     disclaimerAgree: "我已阅读并同意以上内容。",
+    campaignSetup: "广告设置",
+    beforeWeStart: "开始前",
+    campaignIntakeHint: "请选择您的语言，并一次性填写您的资料。这些资料将用于所有广告素材提交。",
+    preferredLanguage: "首选语言",
+    fullName: "姓名",
+    agentId: "经纪人编号",
+    continueToMaterials: "继续填写广告素材",
+    saving: "保存中...",
+    liveAdPreview: "实时广告预览",
+    feed: "动态",
+    story: "快拍",
+    storyImage: "快拍图片",
+    storyVideo: "快拍视频",
+    visualGuide: "此为实时视觉指引，最终展示可能因设备和平台设置而异。",
+    previewPlaceholder: "预览占位图",
+    uploadCreativeHint: "上传广告素材以预览您的广告",
+    campaignCaptionHint: "您的广告文案将显示在这里。",
+    learnMore: "了解更多",
+    paragraphHint: "您可以输入多个段落，按 Enter 键开始新的一行。",
   },
 };
+
+const commonContent: Record<Exclude<Language, "en">, Record<string, string>> = {
+  ms: {
+    "campaign details": "Butiran kempen",
+    "materials submission": "Penyerahan bahan",
+    "where would you like to advertise? — listing / agent profile url": "Di manakah anda ingin beriklan? — URL senarai hartanah / profil ejen",
+    "platform": "Platform",
+    "advertise as": "Beriklan sebagai",
+    "start date": "Tarikh mula",
+    "ad caption": "Kapsyen iklan",
+    "feed image": "Imej suapan",
+    "story image": "Imej cerita",
+    "story video (optional)": "Video cerita (pilihan)",
+    "additional notes": "Nota tambahan",
+    "contact us": "Hubungi Kami",
+    "sign up": "Daftar",
+    "book now": "Tempah Sekarang",
+    "get offer": "Dapatkan Tawaran",
+    "get quote": "Dapatkan Sebut Harga",
+  },
+  zh: {
+    "campaign details": "广告详情",
+    "materials submission": "素材提交",
+    "where would you like to advertise? — listing / agent profile url": "您想在哪里投放广告？— 房源 / 经纪人资料链接",
+    "platform": "平台",
+    "advertise as": "广告品牌",
+    "start date": "开始日期",
+    "ad caption": "广告文案",
+    "feed image": "动态图片",
+    "story image": "快拍图片",
+    "story video (optional)": "快拍视频（可选）",
+    "additional notes": "附加说明",
+    "contact us": "联系我们",
+    "sign up": "注册",
+    "book now": "立即预订",
+    "get offer": "获取优惠",
+    "get quote": "获取报价",
+  },
+};
+
+/** Translates standard campaign terminology when the FOT has not supplied a custom field translation. */
+export function localizeCommonContent(value: string, language: Language): string {
+  if (language === "en") return value;
+  return commonContent[language][value.trim().toLowerCase()] ?? value;
+}

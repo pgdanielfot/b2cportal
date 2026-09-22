@@ -3,9 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 import { submitFillForm } from "@/app/actions/submissions";
 import FileFieldInput from "./FileFieldInput";
-import ImageThumbnail from "./ImageThumbnail";
+import LiveAdPreview, { type Media } from "./LiveAdPreview";
 import { isConditionMet, type Condition } from "@/lib/conditions";
-import { LANGUAGES, translations, type Language } from "@/lib/i18n";
+import { LANGUAGES, localizeCommonContent, translations, type Language } from "@/lib/i18n";
 import { minLeadDateString } from "@/lib/dates";
 
 const MIN_LEAD_WORKING_DAYS = 7;
@@ -43,33 +43,52 @@ type Step = {
   condition?: Condition;
 };
 
+type SubmittedAsset = { name: string; url: string; type: string; label: string; width?: number | null; height?: number | null };
+
 export default function FillWizard({
   token,
   productName,
+  campaignUrl,
+  initialLanguage,
+  initialAnswers,
   steps,
   useBlobUpload,
 }: {
   token: string;
   productName: string;
+  campaignUrl?: string;
+  initialLanguage?: Language;
+  initialAnswers?: Record<string, string>;
   steps: Step[];
   useBlobUpload: boolean;
 }) {
-  const [language, setLanguage] = useState<Language | null>(null);
+  const [language, setLanguage] = useState<Language | null>(initialLanguage ?? null);
   const [visiblePosition, setVisiblePosition] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [charCounts, setCharCounts] = useState<Record<string, number>>({});
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers ?? {});
   const [agreedDisclaimers, setAgreedDisclaimers] = useState<Set<string>>(new Set());
   const [uploadingFields, setUploadingFields] = useState<Set<string>>(new Set());
   const [uploadedSummary, setUploadedSummary] = useState<
-    { label: string; files: { name: string; url: string; type: string }[] }[]
+    { label: string; width?: number | null; height?: number | null; files: { name: string; url: string; type: string }[] }[]
   >([]);
+  const [previewMedia, setPreviewMedia] = useState<Record<string, Media[]>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
   const t = translations[language ?? "en"];
   const isUploading = uploadingFields.size > 0;
+  const brandField = steps.flatMap((step) => step.fields).find((field) => /advertise as|brand|where would you like to advertise/i.test(field.label) && field.type === "DROPDOWN");
+  const captionField = steps.flatMap((step) => step.fields).find((field) => /caption/i.test(field.label));
+  const ctaField = steps.flatMap((step) => step.fields).find((field) => /call.?to.?action|\bcta\b/i.test(field.label));
+  const destinationField = steps.flatMap((step) => step.fields).find((field) => /agent listing url|listing.*url|profile.*url/i.test(field.label) && field.type === "URL");
+  const showCampaignPreview = Boolean(campaignUrl && (brandField || captionField || ctaField || destinationField));
+  const fieldLabelFor = (fieldId: string) => steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? "";
+  const mediaFor = (test: (label: string) => boolean) => Object.entries(previewMedia).find(([fieldId, media]) => media.length > 0 && test(fieldLabelFor(fieldId)))?.[1] ?? [];
+  const feedMedia = mediaFor((label) => /feed/i.test(label));
+  const storyImage = mediaFor((label) => /stor(y|ies)/i.test(label) && !/video/i.test(label));
+  const storyVideo = mediaFor((label) => /stor(y|ies)/i.test(label) && /video/i.test(label));
 
   const visibleStepIndices = steps
     .map((s, i) => i)
@@ -78,19 +97,19 @@ export default function FillWizard({
   const isLastStep = visiblePosition === visibleStepIndices.length - 1;
 
   function fieldVisible(field: Field) {
-    return isConditionMet(field.condition ?? null, answers);
+    return !(campaignUrl && /platform/i.test(field.label)) && isConditionMet(field.condition ?? null, answers);
   }
 
   function localizedLabel(field: Field): string {
     if (language === "ms" && field.labelMs) return field.labelMs;
     if (language === "zh" && field.labelZh) return field.labelZh;
-    return field.label;
+    return localizeCommonContent(field.label, language ?? "en");
   }
 
   function localizedTitle(step: Step): string {
     if (language === "ms" && step.titleMs) return step.titleMs;
     if (language === "zh" && step.titleZh) return step.titleZh;
-    return step.title;
+    return localizeCommonContent(step.title, language ?? "en");
   }
 
   function localizedDisclaimer(step: Step): string | undefined {
@@ -121,6 +140,10 @@ export default function FillWizard({
       else next.delete(fieldId);
       return next;
     });
+  }
+
+  function handlePreviewMediaChange(fieldId: string, media: Media[]) {
+    setPreviewMedia((current) => ({ ...current, [fieldId]: media }));
   }
 
   function validateStep(stepIndex: number): string | null {
@@ -220,7 +243,7 @@ export default function FillWizard({
                     return [];
                   }
                 });
-              return { label: localizedLabel(f), files: [...fromFiles, ...fromBlob] };
+              return { label: localizedLabel(f), width: f.width, height: f.height, files: [...fromFiles, ...fromBlob] };
             })
             .filter((f) => f.files.length > 0),
         );
@@ -255,37 +278,28 @@ export default function FillWizard({
   }
 
   if (done) {
+    const submittedAssetCount = uploadedSummary.reduce((count, group) => count + group.files.length, 0);
+    const submittedAssets: SubmittedAsset[] = uploadedSummary.flatMap((group) => group.files.map((file) => ({ ...file, label: group.label, width: group.width, height: group.height })));
+    const feedAssets = submittedAssets.filter((asset) => /feed/i.test(asset.label));
+    const storyAssets = submittedAssets.filter((asset) => !/feed/i.test(asset.label));
     return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-crystal bg-white p-8 text-center space-y-2">
-          <p className="text-2xl">✅</p>
-          <h1 className="text-lg font-semibold text-mahogany">{t.thankYou}</h1>
-          <p className="text-sm text-mahogany/60">{t.submissionReceived}</p>
-        </div>
+      <div className="mx-auto max-w-3xl space-y-5 py-4">
+        <section className="overflow-hidden rounded-3xl border border-crystal bg-white shadow-xl shadow-[#172b5412]">
+          <div className="bg-[linear-gradient(135deg,_#edf4ff,_#ffffff_65%)] px-6 py-9 text-center sm:px-10"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2169df] text-3xl font-bold text-white shadow-lg shadow-blue-200">✓</div><p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#2169df]">Campaign submitted</p><h1 className="mt-1 text-2xl font-bold text-mahogany">{t.thankYou}</h1><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-mahogany/60">{t.submissionReceived} Your campaign materials have been securely saved for the FOT team.</p></div>
+          <div className="flex flex-col gap-3 border-t border-crystal px-6 py-5 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-mahogany/60">You can revisit this campaign at any time to review it.</p>
+          {campaignUrl && (
+            <a
+              href={campaignUrl}
+              className="inline-flex shrink-0 items-center justify-center rounded-xl bg-ignite px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ignite-hover"
+            >
+              View all campaigns →
+            </a>
+          )}
+          </div>
+        </section>
 
         {uploadedSummary.length > 0 && (
-          <div className="rounded-lg border border-crystal bg-white p-6 space-y-4">
-            <h2 className="font-medium text-mahogany">{t.uploadedFiles}</h2>
-            {uploadedSummary.map((group) => (
-              <div key={group.label} className="space-y-2">
-                <p className="text-sm font-medium text-mahogany/70">{group.label}</p>
-                <div className="flex flex-wrap gap-2">
-                  {group.files.map((f) =>
-                    f.type.startsWith("image/") ? (
-                      <ImageThumbnail key={f.url} src={f.url} alt={f.name} />
-                    ) : (
-                      <div
-                        key={f.url}
-                        className="flex h-16 w-16 flex-col items-center justify-center rounded border border-crystal bg-crystal-soft p-1 text-center text-[10px] text-mahogany/70"
-                      >
-                        <span className="truncate w-full">{f.name}</span>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <section className="rounded-3xl border border-crystal bg-white p-5 shadow-sm sm:p-6"><div className="flex items-start justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-mahogany/50">Creative kit</p><h2 className="mt-1 text-lg font-bold text-mahogany">Materials received</h2><p className="mt-1 text-sm text-mahogany/55">Organised by placement and shown at the requested proportions.</p></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">{submittedAssetCount} {submittedAssetCount === 1 ? "asset" : "assets"}</span></div><div className="mt-6 grid gap-6 lg:grid-cols-2">{feedAssets.length > 0 && <PlacementGroup title="Feed creative" subtitle="Square placement" assets={feedAssets} />}{storyAssets.length > 0 && <PlacementGroup title="Story creative" subtitle="Vertical placement" assets={storyAssets} />}</div></section>
         )}
       </div>
     );
@@ -293,8 +307,8 @@ export default function FillWizard({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold text-mahogany">{productName}</h1>
+      <div className="rounded-2xl border border-crystal bg-white/75 px-5 py-4 shadow-sm backdrop-blur">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ignite">Campaign submission</p><h1 className="mt-0.5 text-xl font-bold text-mahogany">{productName}</h1></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">Step {visiblePosition + 1} of {visibleStepIndices.length}</span></div>
         <div className="mt-2 flex gap-1">
           {visibleStepIndices.map((_, i) => (
             <div
@@ -305,6 +319,7 @@ export default function FillWizard({
         </div>
       </div>
 
+      <div className={showCampaignPreview ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-start" : ""}>
       <form
         ref={formRef}
         onSubmit={handleSubmit}
@@ -317,15 +332,16 @@ export default function FillWizard({
             if (!isLastStep) handleNext();
           }
         }}
-        className="rounded-lg border border-crystal bg-white p-6 space-y-5"
+        className="space-y-5 rounded-3xl border border-crystal bg-white p-5 shadow-lg shadow-[#1d37620d] sm:p-7"
       >
         <input type="hidden" name="__language" value={language ?? "en"} />
+        {Object.entries(initialAnswers ?? {}).map(([fieldId, value]) => <input key={fieldId} type="hidden" name={fieldId} value={value} />)}
         {steps.map((step, stepIndex) => (
           <div
             key={step.id}
-            className={stepIndex === currentStepIndex ? "space-y-4" : "hidden"}
+            className={stepIndex === currentStepIndex ? "space-y-5" : "hidden"}
           >
-            <h2 className="font-medium text-mahogany">{localizedTitle(step)}</h2>
+            <div className="border-b border-crystal pb-4"><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ignite">Campaign brief</p><h2 className="mt-1 text-xl font-bold text-mahogany">{localizedTitle(step)}</h2><p className="mt-1 text-sm text-mahogany/55">Complete the required details below to prepare your campaign.</p></div>
             {disclaimerVisible(step) && (
               <div className="space-y-2 rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
                 <p>{localizedDisclaimer(step)}</p>
@@ -356,9 +372,9 @@ export default function FillWizard({
               </div>
             )}
             {step.fields.map((field) => (
-              <div key={field.id} className={fieldVisible(field) ? "space-y-1" : "hidden"}>
+              <div key={field.id} className={fieldVisible(field) ? "space-y-2" : "hidden"}>
                 <div className="flex items-center justify-between gap-2">
-                  <label className="text-sm font-medium text-mahogany">
+                  <label className="text-sm font-semibold text-mahogany">
                     {localizedLabel(field)}
                     {field.required && <span className="text-ignite"> *</span>}
                   </label>
@@ -378,12 +394,13 @@ export default function FillWizard({
                   <>
                     <input
                       name={field.id}
+                      defaultValue={answers[field.id] ?? ""}
                       maxLength={field.maxLength ?? undefined}
                       onChange={(e) => {
                         setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }));
                         handleAnswerChange(field.id, e.target.value);
                       }}
-                      className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
+                      className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                     />
                     {field.maxLength && (
                       <p className="text-right text-xs text-mahogany/40">
@@ -396,14 +413,15 @@ export default function FillWizard({
                   <>
                     <textarea
                       name={field.id}
+                      defaultValue={answers[field.id] ?? ""}
                       rows={6}
                       maxLength={field.maxLength ?? undefined}
                       onChange={(e) => {
                         setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }));
                         handleAnswerChange(field.id, e.target.value);
                       }}
-                      placeholder="You can write multiple paragraphs — press Enter to start a new line."
-                      className="w-full resize-y rounded-md border px-3 py-2 text-sm leading-relaxed focus:border-ignite focus:outline-none"
+                      placeholder={t.paragraphHint}
+                      className="w-full resize-y rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm leading-relaxed text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                     />
                     {field.maxLength && (
                       <p className="text-right text-xs text-mahogany/40">
@@ -416,9 +434,10 @@ export default function FillWizard({
                   <input
                     type="url"
                     name={field.id}
+                    defaultValue={answers[field.id] ?? ""}
                     placeholder="https://example.com"
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
+                    className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                   />
                 )}
                 {field.type === "DATE" && (
@@ -427,19 +446,20 @@ export default function FillWizard({
                     name={field.id}
                     min={minLeadDateString(MIN_LEAD_WORKING_DAYS)}
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
+                    className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                   />
                 )}
                 {field.type === "DROPDOWN" && (
                   <select
                     name={field.id}
+                    defaultValue={answers[field.id] ?? ""}
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                    className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                   >
                     <option value="">{t.selectPlaceholder}</option>
                     {field.options.map((o) => (
                       <option key={o} value={o}>
-                        {o}
+                        {localizeCommonContent(o, language ?? "en")}
                       </option>
                     ))}
                   </select>
@@ -450,6 +470,7 @@ export default function FillWizard({
                     token={token}
                     useBlobUpload={useBlobUpload}
                     onUploadingChange={handleUploadingChange}
+                    onPreviewMediaChange={handlePreviewMediaChange}
                   />
                 )}
               </div>
@@ -459,7 +480,7 @@ export default function FillWizard({
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <div className="flex justify-between pt-2">
+        <div className="flex justify-between border-t border-crystal pt-5">
           <button
             type="button"
             onClick={() => {
@@ -470,7 +491,7 @@ export default function FillWizard({
                 setVisiblePosition((p) => Math.max(0, p - 1));
               }
             }}
-            className="rounded-md border border-crystal px-4 py-2 text-sm font-medium text-mahogany disabled:opacity-40"
+            className="rounded-xl border border-crystal bg-white px-5 py-2.5 text-sm font-semibold text-mahogany transition hover:bg-crystal-soft disabled:opacity-40"
           >
             {t.back}
           </button>
@@ -479,7 +500,7 @@ export default function FillWizard({
             <button
               type="submit"
               disabled={isPending || isUploading || disclaimerBlocking(steps[currentStepIndex])}
-              className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
+              className="rounded-xl bg-ignite px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ignite-hover disabled:opacity-50"
             >
               {isUploading
                 ? t.uploading
@@ -494,7 +515,7 @@ export default function FillWizard({
               type="button"
               onClick={handleNext}
               disabled={isUploading || disclaimerBlocking(steps[currentStepIndex])}
-              className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
+              className="rounded-xl bg-ignite px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ignite-hover disabled:opacity-50"
             >
               {isUploading
                 ? t.uploading
@@ -505,6 +526,34 @@ export default function FillWizard({
           )}
         </div>
       </form>
+      {showCampaignPreview && (
+        <aside className="lg:sticky lg:top-6">
+          <LiveAdPreview
+            language={language ?? "en"}
+            brand={brandField ? answers[brandField.id] : undefined}
+            feedMedia={feedMedia}
+            storyImage={storyImage}
+            storyVideo={storyVideo}
+            caption={captionField ? answers[captionField.id] : undefined}
+            cta={ctaField ? answers[ctaField.id] : undefined}
+            destination={destinationField ? answers[destinationField.id] : undefined}
+          />
+        </aside>
+      )}
+      </div>
     </div>
   );
+}
+
+function PlacementGroup({ title, subtitle, assets }: { title: string; subtitle: string; assets: SubmittedAsset[] }) {
+  return <section className="rounded-2xl border border-crystal bg-[#fbfcff] p-4"><div className="mb-4 flex items-center justify-between"><div><h3 className="text-sm font-bold text-mahogany">{title}</h3><p className="mt-0.5 text-xs text-mahogany/50">{subtitle}</p></div><span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-mahogany/55 shadow-sm">{assets.length} {assets.length === 1 ? "creative" : "creatives"}</span></div><div className={/Feed/i.test(title) ? "grid grid-cols-2 gap-3" : "grid grid-cols-2 items-start gap-3"}>{assets.map((asset) => <CreativeAssetCard key={asset.url} asset={asset} />)}</div></section>;
+}
+
+function CreativeAssetCard({ asset }: { asset: SubmittedAsset }) {
+  const ratio = asset.width && asset.height ? `${asset.width} / ${asset.height}` : /stor(y|ies)/i.test(asset.label) ? "9 / 16" : "1 / 1";
+  return <div className="min-w-0"><div className="group relative overflow-hidden rounded-xl border border-crystal bg-crystal-soft shadow-sm" style={{ aspectRatio: ratio }}>{asset.type.startsWith("video/") ? <video src={asset.url} className="h-full w-full object-cover" muted playsInline preload="metadata" controls /> : <>
+    {/* Object URLs and Blob URLs cannot reliably be optimized by next/image. */}
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={asset.url} alt={asset.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+  </>}<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-2.5 pb-2 pt-7 text-[9px] font-bold uppercase tracking-wide text-white">{asset.type.startsWith("video/") && "▶ "}{asset.label.replace(" (Optional)", "")}</div></div><p className="mt-2 truncate text-center text-[10px] font-semibold uppercase tracking-wide text-mahogany/50">{asset.width && asset.height ? `${asset.width} × ${asset.height}` : ratio}</p></div>;
 }

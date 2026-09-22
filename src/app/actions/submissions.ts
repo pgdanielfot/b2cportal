@@ -15,21 +15,54 @@ const MIN_LEAD_WORKING_DAYS = 7;
 async function requireFotUser() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Not authenticated");
-  return session.user.id;
+
+  const existing = await prisma.fotUser.findUnique({ where: { id: session.user.id } });
+  if (existing) return existing.id;
+
+  // Local development uses its own database, while the browser can retain a
+  // signed-in FOT session from the normal portal. Mirror that known local
+  // session user here so campaign testing does not fail on a foreign key.
+  if (process.env.DATABASE_URL?.includes("localhost:51214")) {
+    const email = session.user.email || `local-${session.user.id}@example.test`;
+    const byEmail = await prisma.fotUser.findUnique({ where: { email } });
+    if (byEmail) return byEmail.id;
+    const localUser = await prisma.fotUser.create({
+      data: { id: session.user.id, email, name: session.user.name || "Local FOT User", passwordHash: "local-session-only" },
+    });
+    return localUser.id;
+  }
+
+  throw new Error("Your FOT account could not be found.");
 }
 
-export async function createSubmissionLink(productId: string, soNumber: string) {
+export async function createCampaignLink(productId: string, soNumber: string, quantity: number) {
   const userId = await requireFotUser();
 
   if (!/^\d{5,6}$/.test(soNumber)) {
     throw new Error("SO number must be 5 or 6 digits.");
   }
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
+    throw new Error("Campaign quantity must be between 1 and 20.");
+  }
 
-  const submission = await prisma.submission.create({
-    data: { productId, soNumber, createdById: userId },
+  const campaign = await prisma.campaign.create({
+    data: {
+      productId,
+      soNumber,
+      quantity,
+      createdById: userId,
+      submissions: {
+        create: Array.from({ length: quantity }, (_, index) => ({
+          productId,
+          soNumber,
+          createdById: userId,
+          campaignSequence: index + 1,
+        })),
+      },
+    },
   });
 
-  redirect(`/fot/products/${productId}?created=${submission.shareToken}`);
+  redirect(`/fot/products/${productId}?createdCampaign=${campaign.shareToken}`);
 }
 
 export async function deleteSubmission(submissionId: string, productId: string) {
@@ -52,13 +85,24 @@ export async function setSubmissionArchived(submissionId: string, archived: bool
 
 export type SubmitFormResult = { ok: true } | { ok: false; error: string };
 
+export async function saveCampaignIntake(token: string, language: string, agentName: string, agentId: string) {
+  if (!["en", "ms", "zh"].includes(language) || !agentName.trim() || !agentId.trim()) {
+    return { ok: false as const, error: "Please complete your language and personal information." };
+  }
+  const campaign = await prisma.campaign.findUnique({ where: { shareToken: token } });
+  if (!campaign) return { ok: false as const, error: "This campaign link is invalid." };
+  await prisma.campaign.update({ where: { id: campaign.id }, data: { language, agentName: agentName.trim(), agentId: agentId.trim() } });
+  revalidatePath(`/campaign/${token}`);
+  return { ok: true as const };
+}
+
 export async function submitFillForm(
   token: string,
   formData: FormData,
 ): Promise<SubmitFormResult> {
   const submission = await prisma.submission.findUnique({
     where: { shareToken: token },
-    include: { product: { include: { steps: { include: { fields: true } } } } },
+    include: { campaign: { select: { id: true } }, product: { include: { steps: { include: { fields: true } } } } },
   });
 
   if (!submission) return { ok: false, error: "This link is invalid." };
@@ -85,6 +129,9 @@ export async function submitFillForm(
   }
 
   for (const field of allFields) {
+    // Meta campaigns are always prepared for both Facebook and Instagram, so
+    // the legacy single-platform field is intentionally not collected.
+    if (submission.campaign && /platform/i.test(field.label)) continue;
     const isVisible =
       isConditionMet(field.stepCondition, answers) &&
       isConditionMet(field.condition as Condition, answers);
@@ -126,7 +173,10 @@ export async function submitFillForm(
           const buffer = Buffer.from(await file.arrayBuffer());
           buffers.push(buffer);
 
-          if (field.width || field.height) {
+          // Video dimensions are validated in the browser using video metadata.
+          // image-size only understands image buffers, so do not send videos
+          // through its image-only validation path.
+          if ((field.width || field.height) && !file.type.startsWith("video/")) {
             try {
               const dimensions = imageSize(buffer);
               if (

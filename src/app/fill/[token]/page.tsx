@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import FillWizard from "./FillWizard";
+import SubmissionReview from "./SubmissionReview";
 import type { Condition } from "@/lib/conditions";
 
 export default async function FillPage({ params }: { params: Promise<{ token: string }> }) {
@@ -9,6 +10,8 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
   const submission = await prisma.submission.findUnique({
     where: { shareToken: token },
     include: {
+      campaign: { select: { shareToken: true, language: true, agentName: true, agentId: true } },
+      values: { select: { fieldId: true, value: true, files: true } },
       product: {
         include: { steps: { orderBy: { order: "asc" }, include: { fields: { orderBy: { order: "asc" } } } } },
       },
@@ -18,16 +21,9 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
   if (!submission) notFound();
 
   if (submission.status === "SUBMITTED") {
+    const reviewSteps = submission.product.steps.map((step) => ({ id: step.id, title: step.title, fields: step.fields.map((field) => ({ id: field.id, label: field.label, type: field.type, width: field.width, height: field.height })) }));
     return (
-      <div className="min-h-screen bg-crystal-soft">
-        <div className="mx-auto max-w-xl px-6 py-16">
-          <div className="rounded-lg border border-crystal bg-white p-8 text-center space-y-2">
-            <p className="text-2xl">✅</p>
-            <h1 className="text-lg font-semibold text-mahogany">Already submitted</h1>
-            <p className="text-sm text-mahogany/60">This form has already been completed.</p>
-          </div>
-        </div>
-      </div>
+      <SubmissionReview productName={submission.product.name} campaignUrl={submission.campaign ? `/campaign/${submission.campaign.shareToken}` : undefined} steps={reviewSteps} values={submission.values.map((value) => ({ fieldId: value.fieldId, value: value.value, files: value.files as { url: string; name: string; type: string }[] | null }))} />
     );
   }
 
@@ -62,13 +58,23 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
     })),
   }));
 
+  const displaySteps = submission.campaign?.language
+    ? steps.filter((step) => !step.fields.some((field) => /full name|agent id/i.test(field.label)))
+    : steps;
+
   return (
     <div className="min-h-screen bg-crystal-soft">
-      <div className="mx-auto max-w-xl px-6 py-12">
+      <div className="mx-auto max-w-6xl px-6 py-12">
         <FillWizard
           token={token}
           productName={submission.product.name}
-          steps={steps}
+          campaignUrl={submission.campaign ? `/campaign/${submission.campaign.shareToken}` : undefined}
+          initialLanguage={(submission.campaign?.language as "en" | "ms" | "zh" | null) ?? undefined}
+          initialAnswers={Object.fromEntries([
+            ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /full name/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentName ?? ""]),
+            ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /agent id/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentId ?? ""]),
+          ])}
+          steps={displaySteps}
           useBlobUpload={Boolean(process.env.BLOB_READ_WRITE_TOKEN)}
         />
       </div>
