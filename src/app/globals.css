@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #48261d;
+  --background: #faf8f6;
+  --foreground: #19253f;
 
   /* Brand palette */
-  --color-mahogany: #48261d;
-  --color-ignite: #f94c00;
-  --color-ignite-hover: #d94200;
-  --color-crystal: #cae7f7;
-  --color-crystal-soft: #eaf6fc;
+  --color-mahogany: #19253f;
+  --color-ignite: #e33d32;
+  --color-ignite-hover: #c93127;
+  --color-crystal: #e7dfda;
+  --color-crystal-soft: #f6f1ee;
 }
 
 @theme inline {
