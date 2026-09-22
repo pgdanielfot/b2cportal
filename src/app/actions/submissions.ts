@@ -118,7 +118,14 @@ export async function submitFillForm(
   }
 
   const allFields = submission.product.steps.flatMap((step) =>
-    step.fields.map((field) => ({ ...field, stepCondition: step.condition as Condition })),
+    step.fields.map((field) => ({
+      ...field,
+      stepCondition: step.condition as Condition,
+      // Campaign links capture agent details once before creating the campaign
+      // cards. FOT may rename “Full Name”, but the companion Agent ID marks
+      // that whole step as campaign-managed rather than a second requirement.
+      campaignIdentityStep: step.fields.some((item) => /agent\s*(id|identifier|code)|id\s*ejen|经纪人编号/i.test(item.label)),
+    })),
   );
 
   const answers: Record<string, string> = {};
@@ -132,6 +139,7 @@ export async function submitFillForm(
     // Meta campaigns are always prepared for both Facebook and Instagram, so
     // the legacy single-platform field is intentionally not collected.
     if (submission.campaign && /platform/i.test(field.label)) continue;
+    if (submission.campaign && field.campaignIdentityStep) continue;
     const isVisible =
       isConditionMet(field.stepCondition, answers) &&
       isConditionMet(field.condition as Condition, answers);
