@@ -170,7 +170,10 @@ export async function submitFillForm(
           const buffer = Buffer.from(await file.arrayBuffer());
           buffers.push(buffer);
 
-          if (field.width || field.height) {
+          // Video dimensions are validated in the browser using video metadata.
+          // image-size only understands image buffers, so do not send videos
+          // through its image-only validation path.
+          if ((field.width || field.height) && !file.type.startsWith("video/")) {
             try {
               const dimensions = imageSize(buffer);
               if (

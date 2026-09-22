@@ -173,6 +173,12 @@ export default function FileFieldInput({
     replaceInputFiles(current);
   }
 
+  async function removeReadyPreview(preview: Preview) {
+    const remaining = Array.from(inputRef.current?.files ?? []).filter((file) => file.name !== preview.name);
+    replaceInputFiles(remaining);
+    await syncReadyFiles(remaining);
+  }
+
   async function handleAutoCrop(issue: DimensionIssue) {
     if (!field.width || !field.height) return;
     setProcessingName(issue.file.name);
@@ -232,16 +238,10 @@ export default function FileFieldInput({
       {previews.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {previews.map((p) =>
-            p.type.startsWith("image/") ? (
-              <ImageThumbnail key={p.url} src={p.url} alt={p.name} />
-            ) : (
-              <div
-                key={p.url}
-                className="flex h-16 w-16 flex-col items-center justify-center rounded border border-crystal bg-crystal-soft p-1 text-center text-[10px] text-mahogany/70"
-              >
-                <span className="truncate w-full">{p.name}</span>
-              </div>
-            ),
+            <div key={p.url} className="relative">
+              {p.type.startsWith("image/") ? <ImageThumbnail src={p.url} alt={p.name} /> : <div className="flex h-16 w-16 flex-col items-center justify-center rounded border border-crystal bg-crystal-soft p-1 text-center text-[10px] text-mahogany/70"><span className="truncate w-full">{p.name}</span></div>}
+              <button type="button" onClick={() => void removeReadyPreview(p)} className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow hover:bg-red-700" aria-label={`Remove ${p.name}`}>×</button>
+            </div>,
           )}
         </div>
       )}

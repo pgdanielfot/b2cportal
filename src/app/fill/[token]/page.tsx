@@ -63,6 +63,10 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
     })),
   }));
 
+  const displaySteps = submission.campaign?.language
+    ? steps.filter((step) => !step.fields.some((field) => /full name|agent id/i.test(field.label)))
+    : steps;
+
   return (
     <div className="min-h-screen bg-crystal-soft">
       <div className="mx-auto max-w-6xl px-6 py-12">
@@ -75,7 +79,7 @@ export default async function FillPage({ params }: { params: Promise<{ token: st
             ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /full name/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentName ?? ""]),
             ...submission.product.steps.flatMap((step) => step.fields).filter((field) => /agent id/i.test(field.label)).map((field) => [field.id, submission.campaign?.agentId ?? ""]),
           ])}
-          steps={steps}
+          steps={displaySteps}
           useBlobUpload={Boolean(process.env.BLOB_READ_WRITE_TOKEN)}
         />
       </div>

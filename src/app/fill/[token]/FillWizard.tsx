@@ -83,6 +83,7 @@ export default function FillWizard({
   const placementPlatform = platformAnswer === "Facebook" || platformAnswer === "Instagram" ? platformAnswer : undefined;
   const captionField = steps.flatMap((step) => step.fields).find((field) => /caption/i.test(field.label));
   const ctaField = steps.flatMap((step) => step.fields).find((field) => /call.?to.?action|\bcta\b/i.test(field.label));
+  const destinationField = steps.flatMap((step) => step.fields).find((field) => /where would you like to advertise|listing.*url|profile.*url/i.test(field.label));
   const mediaEntries = Object.entries(previewMedia);
   const feedMedia = mediaEntries.find(([fieldId, media]) => Boolean(media) && /feed/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1]
     ?? mediaEntries.find(([fieldId, media]) => Boolean(media) && !/story/i.test(steps.flatMap((step) => step.fields).find((field) => field.id === fieldId)?.label ?? ""))?.[1];
@@ -351,6 +352,7 @@ export default function FillWizard({
         className="rounded-lg border border-crystal bg-white p-6 space-y-5"
       >
         <input type="hidden" name="__language" value={language ?? "en"} />
+        {Object.entries(initialAnswers ?? {}).map(([fieldId, value]) => <input key={fieldId} type="hidden" name={fieldId} value={value} />)}
         {steps.map((step, stepIndex) => (
           <div
             key={step.id}
@@ -550,6 +552,7 @@ export default function FillWizard({
             storyVideo={storyVideo}
             caption={captionField ? answers[captionField.id] : undefined}
             cta={ctaField ? answers[ctaField.id] : undefined}
+            destination={destinationField ? answers[destinationField.id] : undefined}
           />
         </aside>
       )}
