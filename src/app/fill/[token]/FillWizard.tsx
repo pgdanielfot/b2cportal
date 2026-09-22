@@ -81,6 +81,7 @@ export default function FillWizard({
   const platformField = steps.flatMap((step) => step.fields).find((field) => /platform/i.test(field.label));
   const platformAnswer = platformField ? answers[platformField.id] : undefined;
   const placementPlatform = platformAnswer === "Facebook" || platformAnswer === "Instagram" ? platformAnswer : undefined;
+  const brandField = steps.flatMap((step) => step.fields).find((field) => /advertise as|brand/i.test(field.label));
   const captionField = steps.flatMap((step) => step.fields).find((field) => /caption/i.test(field.label));
   const ctaField = steps.flatMap((step) => step.fields).find((field) => /call.?to.?action|\bcta\b/i.test(field.label));
   const destinationField = steps.flatMap((step) => step.fields).find((field) => /where would you like to advertise|listing.*url|profile.*url/i.test(field.label));
@@ -547,6 +548,7 @@ export default function FillWizard({
         <aside className="lg:sticky lg:top-6">
           <LiveAdPreview
             platform={placementPlatform}
+            brand={brandField ? answers[brandField.id] : undefined}
             feedMedia={feedMedia}
             storyImage={storyImage}
             storyVideo={storyVideo}

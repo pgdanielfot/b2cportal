@@ -27,8 +27,9 @@ async function main() {
         { title: "Campaign Details", titleMs: "Butiran Kempen", titleZh: "广告详情", order: 1, fields: { create: [
           { label: "Where would you like to advertise? — Listing / Agent Profile URL", labelMs: "Di manakah anda ingin mengiklankan? — URL Listing / Profil Ejen", labelZh: "您想在哪里投放广告？— 房源 / 经纪人主页链接", type: "URL", required: true, order: 0 },
           { label: "Platform", labelMs: "Platform", labelZh: "平台", type: "DROPDOWN", required: true, order: 1, options: ["Facebook", "Instagram"] },
-          { label: "Start Date", labelMs: "Tarikh Mula", labelZh: "开始日期", type: "DATE", required: true, order: 2 },
-          { label: "Ad Caption", labelMs: "Kapsyen Iklan", labelZh: "广告文案", type: "TEXTAREA", required: false, maxLength: 500, order: 3 },
+          { label: "Advertise as", labelMs: "Iklankan sebagai", labelZh: "广告品牌", type: "DROPDOWN", required: true, order: 2, options: ["PropertyGuru", "iProperty", "PropertyGuru + iProperty"] },
+          { label: "Start Date", labelMs: "Tarikh Mula", labelZh: "开始日期", type: "DATE", required: true, order: 3 },
+          { label: "Ad Caption", labelMs: "Kapsyen Iklan", labelZh: "广告文案", type: "TEXTAREA", required: false, maxLength: 500, order: 4 },
         ] } },
         { title: "Materials Submission", titleMs: "Penyerahan Bahan", titleZh: "素材提交", order: 2, fields: { create: [
           { label: "Feed Image", labelMs: "Imej Feed", labelZh: "信息流图片", type: "FILE", required: true, order: 0, minFiles: 1, maxFiles: 1, maxSizeMb: 10, allowedTypes: ["image/jpeg", "image/png"], width: 1080, height: 1080 },
