@@ -43,6 +43,27 @@ type Dictionary = {
   campaignCaptionHint: string;
   learnMore: string;
   paragraphHint: string;
+  campaignWorkspace: string;
+  yourCampaign: string;
+  campaignAds: string;
+  completed: string;
+  ready: string;
+  campaignAd: string;
+  notStarted: string;
+  addCampaign: string;
+  reviewSubmission: string;
+  materialsReady: string;
+  addCampaignDetails: string;
+  campaignBriefHint: string;
+  imageNeedsResizing: string;
+  videoNeedsResizing: string;
+  placementNeedsSize: string;
+  videosCannotCrop: string;
+  resizeAutomatically: string;
+  cropManually: string;
+  removeThisFile: string;
+  fileHasDimensions: string;
+  requiredSize: string;
 };
 
 export const translations: Record<Language, Dictionary> = {
@@ -83,6 +104,27 @@ export const translations: Record<Language, Dictionary> = {
     campaignCaptionHint: "Your campaign caption will appear here.",
     learnMore: "Learn More",
     paragraphHint: "You can write multiple paragraphs — press Enter to start a new line.",
+    campaignWorkspace: "Campaign workspace",
+    yourCampaign: "Your Campaign",
+    campaignAds: "Campaign ads",
+    completed: "Completed",
+    ready: "Ready",
+    campaignAd: "Campaign ad",
+    notStarted: "Not started",
+    addCampaign: "Add campaign",
+    reviewSubmission: "Review submission",
+    materialsReady: "Your materials are ready to review.",
+    addCampaignDetails: "Add your campaign details and creative materials.",
+    campaignBriefHint: "Complete the required details below to prepare your campaign.",
+    imageNeedsResizing: "Image needs resizing",
+    videoNeedsResizing: "Video needs a different size",
+    placementNeedsSize: "This placement needs",
+    videosCannotCrop: "Videos cannot be cropped here.",
+    resizeAutomatically: "Resize automatically",
+    cropManually: "Crop manually",
+    removeThisFile: "Remove this file",
+    fileHasDimensions: "has dimensions",
+    requiredSize: "Required size",
   },
   ms: {
     chooseLanguage: "Pilih bahasa anda",
@@ -121,6 +163,27 @@ export const translations: Record<Language, Dictionary> = {
     campaignCaptionHint: "Kapsyen kempen anda akan dipaparkan di sini.",
     learnMore: "Ketahui Lebih Lanjut",
     paragraphHint: "Anda boleh menulis beberapa perenggan — tekan Enter untuk memulakan baris baharu.",
+    campaignWorkspace: "Ruang kerja kempen",
+    yourCampaign: "Kempen Anda",
+    campaignAds: "Iklan kempen",
+    completed: "Selesai",
+    ready: "Sedia",
+    campaignAd: "Iklan kempen",
+    notStarted: "Belum bermula",
+    addCampaign: "Tambah kempen",
+    reviewSubmission: "Semak penyerahan",
+    materialsReady: "Bahan anda sedia untuk disemak.",
+    addCampaignDetails: "Tambahkan butiran kempen dan bahan kreatif anda.",
+    campaignBriefHint: "Lengkapkan butiran yang diperlukan di bawah untuk menyediakan kempen anda.",
+    imageNeedsResizing: "Imej perlu diubah saiz",
+    videoNeedsResizing: "Video memerlukan saiz yang berbeza",
+    placementNeedsSize: "Penempatan ini memerlukan",
+    videosCannotCrop: "Video tidak boleh dipangkas di sini.",
+    resizeAutomatically: "Ubah saiz secara automatik",
+    cropManually: "Pangkas secara manual",
+    removeThisFile: "Buang fail ini",
+    fileHasDimensions: "mempunyai dimensi",
+    requiredSize: "Saiz diperlukan",
   },
   zh: {
     chooseLanguage: "请选择您的语言",
@@ -159,6 +222,27 @@ export const translations: Record<Language, Dictionary> = {
     campaignCaptionHint: "您的广告文案将显示在这里。",
     learnMore: "了解更多",
     paragraphHint: "您可以输入多个段落，按 Enter 键开始新的一行。",
+    campaignWorkspace: "广告工作区",
+    yourCampaign: "您的广告活动",
+    campaignAds: "广告数量",
+    completed: "已完成",
+    ready: "待完成",
+    campaignAd: "广告",
+    notStarted: "未开始",
+    addCampaign: "添加广告",
+    reviewSubmission: "查看提交内容",
+    materialsReady: "您的素材已准备好供您查看。",
+    addCampaignDetails: "填写广告详情并上传创意素材。",
+    campaignBriefHint: "请填写以下必填资料以准备您的广告活动。",
+    imageNeedsResizing: "图片需要调整尺寸",
+    videoNeedsResizing: "视频尺寸不符合要求",
+    placementNeedsSize: "此广告位需要",
+    videosCannotCrop: "视频无法在此处裁剪。",
+    resizeAutomatically: "自动调整尺寸",
+    cropManually: "手动裁剪",
+    removeThisFile: "移除此文件",
+    fileHasDimensions: "尺寸为",
+    requiredSize: "所需尺寸",
   },
 };
 
