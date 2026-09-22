@@ -81,6 +81,7 @@ export default function FillWizard({
   const platformField = steps.flatMap((step) => step.fields).find((field) => /platform/i.test(field.label));
   const platformAnswer = platformField ? answers[platformField.id] : undefined;
   const placementPlatform = platformAnswer === "Facebook" || platformAnswer === "Instagram" ? platformAnswer : undefined;
+  const showCampaignPreview = Boolean(platformField);
   const brandField = steps.flatMap((step) => step.fields).find((field) => /advertise as|brand/i.test(field.label));
   const captionField = steps.flatMap((step) => step.fields).find((field) => /caption/i.test(field.label));
   const ctaField = steps.flatMap((step) => step.fields).find((field) => /call.?to.?action|\bcta\b/i.test(field.label));
@@ -325,8 +326,8 @@ export default function FillWizard({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold text-mahogany">{productName}</h1>
+      <div className="rounded-2xl border border-crystal bg-white/75 px-5 py-4 shadow-sm backdrop-blur">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ignite">Campaign submission</p><h1 className="mt-0.5 text-xl font-bold text-mahogany">{productName}</h1></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">Step {visiblePosition + 1} of {visibleStepIndices.length}</span></div>
         <div className="mt-2 flex gap-1">
           {visibleStepIndices.map((_, i) => (
             <div
@@ -337,7 +338,7 @@ export default function FillWizard({
         </div>
       </div>
 
-      <div className={placementPlatform ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-start" : ""}>
+      <div className={showCampaignPreview ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-start" : ""}>
       <form
         ref={formRef}
         onSubmit={handleSubmit}
@@ -350,16 +351,16 @@ export default function FillWizard({
             if (!isLastStep) handleNext();
           }
         }}
-        className="rounded-lg border border-crystal bg-white p-6 space-y-5"
+        className="space-y-5 rounded-3xl border border-crystal bg-white p-5 shadow-lg shadow-[#1d37620d] sm:p-7"
       >
         <input type="hidden" name="__language" value={language ?? "en"} />
         {Object.entries(initialAnswers ?? {}).map(([fieldId, value]) => <input key={fieldId} type="hidden" name={fieldId} value={value} />)}
         {steps.map((step, stepIndex) => (
           <div
             key={step.id}
-            className={stepIndex === currentStepIndex ? "space-y-4" : "hidden"}
+            className={stepIndex === currentStepIndex ? "space-y-5" : "hidden"}
           >
-            <h2 className="font-medium text-mahogany">{localizedTitle(step)}</h2>
+            <div className="border-b border-crystal pb-4"><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ignite">Campaign brief</p><h2 className="mt-1 text-xl font-bold text-mahogany">{localizedTitle(step)}</h2><p className="mt-1 text-sm text-mahogany/55">Complete the required details below to prepare your campaign.</p></div>
             {disclaimerVisible(step) && (
               <div className="space-y-2 rounded-md border border-ignite/30 bg-crystal-soft p-3 text-sm text-mahogany/80">
                 <p>{localizedDisclaimer(step)}</p>
@@ -390,9 +391,9 @@ export default function FillWizard({
               </div>
             )}
             {step.fields.map((field) => (
-              <div key={field.id} className={fieldVisible(field) ? "space-y-1" : "hidden"}>
+              <div key={field.id} className={fieldVisible(field) ? "space-y-2" : "hidden"}>
                 <div className="flex items-center justify-between gap-2">
-                  <label className="text-sm font-medium text-mahogany">
+                  <label className="text-sm font-semibold text-mahogany">
                     {localizedLabel(field)}
                     {field.required && <span className="text-ignite"> *</span>}
                   </label>
@@ -418,7 +419,7 @@ export default function FillWizard({
                         setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }));
                         handleAnswerChange(field.id, e.target.value);
                       }}
-                      className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
+                      className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                     />
                     {field.maxLength && (
                       <p className="text-right text-xs text-mahogany/40">
@@ -439,7 +440,7 @@ export default function FillWizard({
                         handleAnswerChange(field.id, e.target.value);
                       }}
                       placeholder="You can write multiple paragraphs — press Enter to start a new line."
-                      className="w-full resize-y rounded-md border px-3 py-2 text-sm leading-relaxed focus:border-ignite focus:outline-none"
+                      className="w-full resize-y rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm leading-relaxed text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                     />
                     {field.maxLength && (
                       <p className="text-right text-xs text-mahogany/40">
@@ -455,7 +456,7 @@ export default function FillWizard({
                     defaultValue={answers[field.id] ?? ""}
                     placeholder="https://example.com"
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
+                    className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                   />
                 )}
                 {field.type === "DATE" && (
@@ -464,7 +465,7 @@ export default function FillWizard({
                     name={field.id}
                     min={minLeadDateString(MIN_LEAD_WORKING_DAYS)}
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:border-ignite focus:outline-none"
+                    className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                   />
                 )}
                 {field.type === "DROPDOWN" && (
@@ -472,7 +473,7 @@ export default function FillWizard({
                     name={field.id}
                     defaultValue={answers[field.id] ?? ""}
                     onChange={(e) => handleAnswerChange(field.id, e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
+                    className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                   >
                     <option value="">{t.selectPlaceholder}</option>
                     {field.options.map((o) => (
@@ -498,7 +499,7 @@ export default function FillWizard({
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <div className="flex justify-between pt-2">
+        <div className="flex justify-between border-t border-crystal pt-5">
           <button
             type="button"
             onClick={() => {
@@ -509,7 +510,7 @@ export default function FillWizard({
                 setVisiblePosition((p) => Math.max(0, p - 1));
               }
             }}
-            className="rounded-md border border-crystal px-4 py-2 text-sm font-medium text-mahogany disabled:opacity-40"
+            className="rounded-xl border border-crystal bg-white px-5 py-2.5 text-sm font-semibold text-mahogany transition hover:bg-crystal-soft disabled:opacity-40"
           >
             {t.back}
           </button>
@@ -518,7 +519,7 @@ export default function FillWizard({
             <button
               type="submit"
               disabled={isPending || isUploading || disclaimerBlocking(steps[currentStepIndex])}
-              className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
+              className="rounded-xl bg-ignite px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ignite-hover disabled:opacity-50"
             >
               {isUploading
                 ? t.uploading
@@ -533,7 +534,7 @@ export default function FillWizard({
               type="button"
               onClick={handleNext}
               disabled={isUploading || disclaimerBlocking(steps[currentStepIndex])}
-              className="rounded-md bg-ignite px-4 py-2 text-sm font-medium text-white hover:bg-ignite-hover disabled:opacity-50"
+              className="rounded-xl bg-ignite px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ignite-hover disabled:opacity-50"
             >
               {isUploading
                 ? t.uploading
@@ -544,9 +545,9 @@ export default function FillWizard({
           )}
         </div>
       </form>
-      {placementPlatform && (
+      {showCampaignPreview && (
         <aside className="lg:sticky lg:top-6">
-          <LiveAdPreview
+          {placementPlatform ? <LiveAdPreview
             platform={placementPlatform}
             brand={brandField ? answers[brandField.id] : undefined}
             feedMedia={feedMedia}
@@ -555,7 +556,7 @@ export default function FillWizard({
             caption={captionField ? answers[captionField.id] : undefined}
             cta={ctaField ? answers[ctaField.id] : undefined}
             destination={destinationField ? answers[destinationField.id] : undefined}
-          />
+          /> : <div className="overflow-hidden rounded-2xl border border-crystal bg-white p-5 shadow-sm"><div className="flex items-start justify-between"><div><h2 className="text-base font-semibold text-mahogany">Live Ad Preview</h2><p className="mt-1 text-xs text-mahogany/55">Preview Iklan Langsung · 实时广告预览</p></div><span className="rounded-full bg-crystal-soft px-2 py-1 text-[10px] font-bold text-mahogany/50">WAITING</span></div><div className="mt-5 flex min-h-80 items-center justify-center rounded-xl border border-dashed border-crystal bg-[linear-gradient(135deg,_#f5f9ff,_#edf3fc)] p-8 text-center"><div><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">▧</div><h3 className="mt-4 font-semibold text-mahogany">Your ad preview will appear here</h3><p className="mt-2 max-w-60 text-sm leading-5 text-mahogany/55">Choose Facebook or Instagram to start previewing your campaign.</p></div></div><p className="mt-4 text-[11px] leading-4 text-mahogany/45">Your selected platform, brand, caption and materials will update this preview live.</p></div>}
         </aside>
       )}
       </div>
