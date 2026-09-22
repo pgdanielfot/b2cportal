@@ -5,7 +5,7 @@ import { submitFillForm } from "@/app/actions/submissions";
 import FileFieldInput from "./FileFieldInput";
 import LiveAdPreview, { type Media } from "./LiveAdPreview";
 import { isConditionMet, type Condition } from "@/lib/conditions";
-import { LANGUAGES, translations, type Language } from "@/lib/i18n";
+import { LANGUAGES, localizeCommonContent, translations, type Language } from "@/lib/i18n";
 import { minLeadDateString } from "@/lib/dates";
 
 const MIN_LEAD_WORKING_DAYS = 7;
@@ -104,13 +104,13 @@ export default function FillWizard({
   function localizedLabel(field: Field): string {
     if (language === "ms" && field.labelMs) return field.labelMs;
     if (language === "zh" && field.labelZh) return field.labelZh;
-    return field.label;
+    return localizeCommonContent(field.label, language ?? "en");
   }
 
   function localizedTitle(step: Step): string {
     if (language === "ms" && step.titleMs) return step.titleMs;
     if (language === "zh" && step.titleZh) return step.titleZh;
-    return step.title;
+    return localizeCommonContent(step.title, language ?? "en");
   }
 
   function localizedDisclaimer(step: Step): string | undefined {
@@ -422,7 +422,7 @@ export default function FillWizard({
                         setCharCounts((c) => ({ ...c, [field.id]: e.target.value.length }));
                         handleAnswerChange(field.id, e.target.value);
                       }}
-                      placeholder="You can write multiple paragraphs — press Enter to start a new line."
+                      placeholder={t.paragraphHint}
                       className="w-full resize-y rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-sm leading-relaxed text-mahogany shadow-sm outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
                     />
                     {field.maxLength && (
@@ -461,7 +461,7 @@ export default function FillWizard({
                     <option value="">{t.selectPlaceholder}</option>
                     {field.options.map((o) => (
                       <option key={o} value={o}>
-                        {o}
+                        {localizeCommonContent(o, language ?? "en")}
                       </option>
                     ))}
                   </select>
@@ -532,6 +532,7 @@ export default function FillWizard({
         <aside className="lg:sticky lg:top-6">
           {placementPlatform ? <LiveAdPreview
             platform={placementPlatform}
+            language={language ?? "en"}
             brand={brandField ? answers[brandField.id] : undefined}
             feedMedia={feedMedia}
             storyImage={storyImage}
