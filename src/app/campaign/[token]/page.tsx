@@ -14,7 +14,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ token
       product: true,
       submissions: {
         orderBy: { campaignSequence: "asc" },
-        include: { values: { include: { field: { select: { label: true, type: true } } } } },
+        include: { values: { include: { field: { select: { label: true, type: true, width: true, height: true } } } } },
       },
     },
   });
@@ -29,7 +29,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ token
     <div className="grid gap-4 sm:grid-cols-3"><Summary label="Campaign ads" value={String(campaign.quantity)} /><Summary label="Completed" value={`${completed} / ${campaign.quantity}`} /><Summary label="Ready" value={`${inProgress} / ${campaign.quantity}`} /></div>
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{campaign.submissions.map((submission) => {
       const complete = submission.status === "SUBMITTED";
-      const media = submission.values.filter((value) => value.field.type === "FILE").map((value) => ({ label: value.field.label, files: ((value.files as StoredFile[] | null) ?? []) }));
+      const media = submission.values.filter((value) => value.field.type === "FILE").map((value) => ({ label: value.field.label, width: value.field.width, height: value.field.height, files: ((value.files as StoredFile[] | null) ?? []) }));
       return <article key={submission.id} className="group overflow-hidden rounded-3xl border border-crystal bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
         <div className={`flex items-center justify-between px-5 py-4 ${complete ? "bg-gradient-to-r from-emerald-50 to-white" : "bg-gradient-to-r from-rose-50 to-white"}`}>
           <div className="flex items-center gap-3"><span className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold ${complete ? "bg-emerald-600 text-white" : "bg-white text-ignite shadow-sm"}`}>{String(submission.campaignSequence).padStart(2, "0")}</span><div><p className="text-xs font-semibold text-mahogany/55">Campaign ad</p><h2 className="text-base font-bold text-mahogany">Campaign Ad {submission.campaignSequence}</h2></div></div>
