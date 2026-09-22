@@ -57,9 +57,20 @@ function StoryPost({ brand, media, action }: { brand: string; media?: Media; act
 }
 
 function Avatar({ brand }: { brand: string }) {
-  const initial = brand === "iProperty" ? "iP" : "PG";
   const color = brand === "PropertyGuru" ? "bg-[#d80000]" : brand === "iProperty" ? "bg-[#2169df]" : "bg-[#707782]";
-  return <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${color}`}>{initial}</span>;
+  if (brand === "PropertyGuru / iProperty") {
+    return <span className={`flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full p-0.5 ${color}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brands/propertyguru.png" alt="PropertyGuru" className="h-full w-1/2 rounded-l-full bg-white object-contain p-0.5" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brands/iproperty.jpeg" alt="iProperty" className="h-full w-1/2 rounded-r-full bg-white object-contain p-0.5" />
+    </span>;
+  }
+  const source = brand === "iProperty" ? "/brands/iproperty.jpeg" : "/brands/propertyguru.png";
+  return <span className={`flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full p-0.5 ${color}`}>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={source} alt={brand} className="h-full w-full rounded-full bg-white object-contain p-0.5" />
+  </span>;
 }
 
 function ActionButton({ brand, full = false, children }: { brand: string; full?: boolean; children: React.ReactNode }) {
