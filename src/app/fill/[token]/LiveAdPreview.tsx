@@ -60,22 +60,17 @@ function StoryPost({ brand, media, caption, action }: { brand: string; media?: M
 function Avatar({ brand }: { brand: string }) {
   const color = brand === "PropertyGuru" ? "bg-[#d80000]" : brand === "iProperty" ? "bg-[#2169df]" : "bg-[#707782]";
   if (brand === "PropertyGuru / iProperty") {
-    return <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${color} shadow-sm`}>
-      <span className="absolute -left-0.5 top-0.5 flex h-[18px] w-[18px] items-center justify-center overflow-hidden rounded-full border border-white bg-white p-0.5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brands/propertyguru.png" alt="PropertyGuru" className="h-full w-full scale-[1.5] object-cover" />
-      </span>
-      <span className="absolute -bottom-0.5 -right-0.5 flex h-[18px] w-[18px] items-center justify-center overflow-hidden rounded-full border border-white bg-white p-0.5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brands/iproperty.jpeg" alt="iProperty" className="h-full w-full object-contain" />
-      </span>
+    return <span aria-label="PropertyGuru and iProperty" className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm ${color}`}>
+      +
     </span>;
   }
   const source = brand === "iProperty" ? "/brands/iproperty.jpeg" : "/brands/propertyguru.png";
-  const logoStyle = brand === "PropertyGuru" ? "scale-[1.55] object-cover" : "object-contain";
-  return <span className={`flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full p-[2px] shadow-sm ${color}`}>
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={source} alt={brand} className={`h-full w-full rounded-full ${logoStyle}`} />
+  const logoStyle = brand === "PropertyGuru" ? "scale-[1.4] object-cover" : "object-contain p-0.5";
+  return <span className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full p-[2px] shadow-sm ${color}`}>
+    <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={source} alt={brand} className={`h-full w-full ${logoStyle}`} />
+    </span>
   </span>;
 }
 
