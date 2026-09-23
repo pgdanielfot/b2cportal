@@ -459,7 +459,7 @@ export default function FillWizard({
                     <option value="">{t.selectPlaceholder}</option>
                     {field.options.map((o) => (
                       <option key={o} value={o}>
-                        {localizeCommonContent(o, language ?? "en")}
+                        {o}
                       </option>
                     ))}
                   </select>
