@@ -285,7 +285,7 @@ export default function FillWizard({
     return (
       <div className="mx-auto max-w-3xl space-y-5 py-4">
         <section className="overflow-hidden rounded-3xl border border-crystal bg-white shadow-xl shadow-[#172b5412]">
-          <div className="bg-[linear-gradient(135deg,_#edf4ff,_#ffffff_65%)] px-6 py-9 text-center sm:px-10"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2169df] text-3xl font-bold text-white shadow-lg shadow-blue-200">✓</div><p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#2169df]">Campaign submitted</p><h1 className="mt-1 text-2xl font-bold text-mahogany">{t.thankYou}</h1><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-mahogany/60">{t.submissionReceived} Your campaign materials have been securely saved for the FOT team.</p></div>
+          <div className="bg-[linear-gradient(135deg,_#edf4ff,_#ffffff_65%)] px-6 py-9 text-center sm:px-10"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2169df] text-3xl font-bold text-white shadow-lg shadow-blue-200">✓</div><p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#2169df]">Campaign submitted</p><h1 className="mt-1 text-2xl font-bold text-mahogany">{t.thankYou}</h1><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-mahogany/60">{t.submissionReceived} Your campaign materials have been securely saved for the PG Fulfilment Operations Team.</p></div>
           <div className="flex flex-col gap-3 border-t border-crystal px-6 py-5 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-mahogany/60">You can revisit this campaign at any time to review it.</p>
           {campaignUrl && (
             <a

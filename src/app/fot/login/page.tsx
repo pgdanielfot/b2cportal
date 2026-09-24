@@ -39,7 +39,7 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm space-y-4 rounded-lg border border-crystal bg-white p-8 shadow-sm"
       >
-        <h1 className="text-xl font-semibold text-mahogany">FOT Sign In</h1>
+        <h1 className="text-xl font-semibold text-mahogany">PG Fulfilment Operations Team Sign In</h1>
 
         <div className="space-y-1">
           <label className="text-sm font-medium text-mahogany">Email or Username</label>
