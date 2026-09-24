@@ -12,6 +12,15 @@ import { minLeadDateString } from "@/lib/dates";
 
 const MIN_LEAD_WORKING_DAYS = 7;
 
+const agentIdPattern = /agent\s*(id|identifier|code)|id\s*ejen|经纪人编号/i;
+const agentNamePattern = /^(full )?name$|nama penuh|姓名/i;
+
+function campaignIdentityValue(label: string, agentName: string, agentId: string) {
+  if (agentIdPattern.test(label)) return agentId;
+  if (agentNamePattern.test(label.trim())) return agentName;
+  return null;
+}
+
 async function requireFotUser() {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Not authenticated");
@@ -89,9 +98,33 @@ export async function saveCampaignIntake(token: string, language: string, agentN
   if (!["en", "ms", "zh"].includes(language) || !agentName.trim() || !agentId.trim()) {
     return { ok: false as const, error: "Please complete your language and personal information." };
   }
-  const campaign = await prisma.campaign.findUnique({ where: { shareToken: token } });
+  const campaign = await prisma.campaign.findUnique({
+    where: { shareToken: token },
+    include: {
+      submissions: { select: { id: true } },
+      product: { include: { steps: { include: { fields: true } } } },
+    },
+  });
   if (!campaign) return { ok: false as const, error: "This campaign link is invalid." };
-  await prisma.campaign.update({ where: { id: campaign.id }, data: { language, agentName: agentName.trim(), agentId: agentId.trim() } });
+  const name = agentName.trim();
+  const id = agentId.trim();
+  const identityFields = campaign.product.steps
+    .filter((step) => step.fields.some((field) => agentIdPattern.test(field.label)))
+    .flatMap((step) => step.fields)
+    .filter((field) => field.type !== "FILE" && campaignIdentityValue(field.label, name, id));
+
+  await prisma.$transaction([
+    prisma.campaign.update({ where: { id: campaign.id }, data: { language, agentName: name, agentId: id } }),
+    ...campaign.submissions.flatMap((submission) =>
+      identityFields.map((field) =>
+        prisma.fieldValue.upsert({
+          where: { submissionId_fieldId: { submissionId: submission.id, fieldId: field.id } },
+          create: { submissionId: submission.id, fieldId: field.id, value: campaignIdentityValue(field.label, name, id)! },
+          update: { value: campaignIdentityValue(field.label, name, id)! },
+        }),
+      ),
+    ),
+  ]);
   revalidatePath(`/campaign/${token}`);
   return { ok: true as const };
 }
@@ -102,7 +135,7 @@ export async function submitFillForm(
 ): Promise<SubmitFormResult> {
   const submission = await prisma.submission.findUnique({
     where: { shareToken: token },
-    include: { campaign: { select: { id: true } }, product: { include: { steps: { include: { fields: true } } } } },
+    include: { campaign: { select: { id: true, agentName: true, agentId: true } }, product: { include: { steps: { include: { fields: true } } } } },
   });
 
   if (!submission) return { ok: false, error: "This link is invalid." };
@@ -124,7 +157,7 @@ export async function submitFillForm(
       // Campaign links capture agent details once before creating the campaign
       // cards. FOT may rename “Full Name”, but the companion Agent ID marks
       // that whole step as campaign-managed rather than a second requirement.
-      campaignIdentityStep: step.fields.some((item) => /agent\s*(id|identifier|code)|id\s*ejen|经纪人编号/i.test(item.label)),
+      campaignIdentityStep: step.fields.some((item) => agentIdPattern.test(item.label)),
     })),
   );
 
@@ -286,6 +319,24 @@ export async function submitFillForm(
         update: { value },
       });
     }
+  }
+
+  if (submission.campaign?.agentName && submission.campaign.agentId) {
+    const identityFields = allFields.filter((field) => field.campaignIdentityStep && field.type !== "FILE");
+    await prisma.$transaction(
+      identityFields.flatMap((field) => {
+        const value = campaignIdentityValue(field.label, submission.campaign!.agentName!, submission.campaign!.agentId!);
+        return value
+          ? [
+              prisma.fieldValue.upsert({
+                where: { submissionId_fieldId: { submissionId: submission.id, fieldId: field.id } },
+                create: { submissionId: submission.id, fieldId: field.id, value },
+                update: { value },
+              }),
+            ]
+          : [];
+      }),
+    );
   }
 
   await prisma.submission.update({

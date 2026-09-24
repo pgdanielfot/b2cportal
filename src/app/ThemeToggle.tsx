@@ -1,21 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+
+const THEME_EVENT = "portal-theme-change";
+
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener(THEME_EVENT, onStoreChange);
+  return () => window.removeEventListener(THEME_EVENT, onStoreChange);
+}
+
+function getSnapshot() {
+  return localStorage.getItem("portal-theme") === "dark";
+}
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+  const dark = useSyncExternalStore(subscribe, getSnapshot, () => false);
 
   useEffect(() => {
-    const enabled = localStorage.getItem("portal-theme") === "dark";
-    setDark(enabled);
-    document.documentElement.classList.toggle("dark", enabled);
-  }, []);
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
 
   function toggleTheme() {
     const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("portal-theme", next ? "dark" : "light");
+    window.dispatchEvent(new Event(THEME_EVENT));
   }
 
   return (

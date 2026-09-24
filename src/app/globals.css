@@ -53,19 +53,23 @@ body {
 .theme-toggle:hover { transform: translateY(-1px); }
 
 html.dark {
-  --background: #111a2c;
-  --foreground: #eff5ff;
-  --color-mahogany: #eff5ff;
-  --color-ignite: #6ea5ff;
-  --color-ignite-hover: #9bc0ff;
-  --color-crystal: #33445f;
-  --color-crystal-soft: #1b2940;
+  --background: #050505;
+  --foreground: #f7f7f7;
+  --color-mahogany: #f7f7f7;
+  --color-ignite: #79abff;
+  --color-ignite-hover: #a7c7ff;
+  --color-crystal: #3b3b3b;
+  --color-crystal-soft: #171717;
 }
 
 html.dark body { background: var(--background); }
-html.dark .bg-white, html.dark .bg-white\/75, html.dark .bg-\[\#fbfcff\], html.dark .bg-\[\#f7f9fc\] { background-color: #172236 !important; }
-html.dark .bg-crystal-soft, html.dark .bg-\[\#e9f0fa\], html.dark .bg-\[\#e8eff9\] { background-color: #1b2940 !important; }
-html.dark .text-mahogany, html.dark .text-mahogany\/60, html.dark .text-mahogany\/55, html.dark .text-mahogany\/50, html.dark .text-mahogany\/45, html.dark .text-mahogany\/40 { color: var(--foreground) !important; }
-html.dark .border-crystal { border-color: #33445f !important; }
-html.dark input, html.dark textarea, html.dark select { background-color: #111a2c !important; color: var(--foreground) !important; }
-html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#dceaff\,_\#f5f8fc_45\%\)\], html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#e0edff\,_\#f5f8fc_42\%\)\] { background-image: radial-gradient(circle at top right, #20345b, #111a2c 52%) !important; }
+html.dark .bg-white, html.dark .bg-white\/75, html.dark .bg-\[\#fbfcff\], html.dark .bg-\[\#f7f9fc\], html.dark .bg-\[\#172b54\] { background-color: #111 !important; }
+html.dark .bg-crystal-soft, html.dark .bg-\[\#e9f0fa\], html.dark .bg-\[\#e8eff9\] { background-color: #171717 !important; }
+html.dark .bg-gradient-to-r { background-image: none !important; background-color: #181818 !important; }
+html.dark .text-mahogany, html.dark .text-mahogany\/70, html.dark .text-mahogany\/60, html.dark .text-mahogany\/55, html.dark .text-mahogany\/50, html.dark .text-mahogany\/45, html.dark .text-mahogany\/40 { color: var(--foreground) !important; }
+html.dark .border-crystal { border-color: #3b3b3b !important; }
+html.dark input, html.dark textarea, html.dark select { background-color: #0b0b0b !important; color: var(--foreground) !important; }
+html.dark .bg-rose-100, html.dark .bg-amber-50 { background-color: #332022 !important; }
+html.dark .text-rose-600, html.dark .text-amber-900\/75, html.dark .text-amber-950 { color: #ffd8dc !important; }
+html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#dceaff\,_\#f5f8fc_45\%\)\], html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#e0edff\,_\#f5f8fc_42\%\)\] { background-image: radial-gradient(circle at top right, #171717, #050505 55%) !important; }
+html.dark .bg-\[linear-gradient\(135deg\,_\#fff\,_\#f5f9ff\)\], html.dark .bg-\[linear-gradient\(135deg\,_\#edf4ff\,_\#ffffff_65\%\)\] { background-image: none !important; background-color: #111 !important; }
