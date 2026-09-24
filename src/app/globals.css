@@ -34,3 +34,38 @@ body {
     Arial,
     sans-serif;
 }
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--color-crystal);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--background) 92%, white);
+  color: var(--foreground);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgb(25 37 63 / 12%);
+  transition: transform 150ms ease, background 150ms ease;
+}
+
+.theme-toggle:hover { transform: translateY(-1px); }
+
+html.dark {
+  --background: #111a2c;
+  --foreground: #eff5ff;
+  --color-mahogany: #eff5ff;
+  --color-ignite: #6ea5ff;
+  --color-ignite-hover: #9bc0ff;
+  --color-crystal: #33445f;
+  --color-crystal-soft: #1b2940;
+}
+
+html.dark body { background: var(--background); }
+html.dark .bg-white, html.dark .bg-white\/75, html.dark .bg-\[\#fbfcff\], html.dark .bg-\[\#f7f9fc\] { background-color: #172236 !important; }
+html.dark .bg-crystal-soft, html.dark .bg-\[\#e9f0fa\], html.dark .bg-\[\#e8eff9\] { background-color: #1b2940 !important; }
+html.dark .text-mahogany, html.dark .text-mahogany\/60, html.dark .text-mahogany\/55, html.dark .text-mahogany\/50, html.dark .text-mahogany\/45, html.dark .text-mahogany\/40 { color: var(--foreground) !important; }
+html.dark .border-crystal { border-color: #33445f !important; }
+html.dark input, html.dark textarea, html.dark select { background-color: #111a2c !important; color: var(--foreground) !important; }
+html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#dceaff\,_\#f5f8fc_45\%\)\], html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#e0edff\,_\#f5f8fc_42\%\)\] { background-image: radial-gradient(circle at top right, #20345b, #111a2c 52%) !important; }

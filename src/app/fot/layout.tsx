@@ -11,7 +11,7 @@ export default async function FotLayout({ children }: { children: React.ReactNod
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
             <div className="flex items-center gap-6">
               <Link href="/fot/dashboard" className="font-semibold text-mahogany">
-                B2C Portal — FOT
+                B2C Portal — PG Fulfilment Operations Team
               </Link>
               <Link href="/fot/dashboard" className="text-sm text-mahogany/70 hover:text-ignite">
                 Products
