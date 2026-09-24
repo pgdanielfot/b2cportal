@@ -62,13 +62,15 @@ html.dark {
   --color-crystal-soft: #171717;
 }
 
+html.dark { color-scheme: dark; }
 html.dark body { background: var(--background); }
-html.dark .bg-white, html.dark .bg-white\/75, html.dark .bg-\[\#fbfcff\], html.dark .bg-\[\#f7f9fc\], html.dark .bg-\[\#172b54\] { background-color: #111 !important; }
-html.dark .bg-crystal-soft, html.dark .bg-\[\#e9f0fa\], html.dark .bg-\[\#e8eff9\] { background-color: #171717 !important; }
+html.dark .bg-white, html.dark .bg-white\/95, html.dark .bg-white\/75, html.dark .bg-\[\#fbfcff\], html.dark .bg-\[\#f7f9fc\], html.dark .bg-\[\#172b54\] { background-color: #111 !important; }
+html.dark .bg-crystal-soft, html.dark .bg-crystal-soft\/60, html.dark .bg-\[\#e9f0fa\], html.dark .bg-\[\#e8eff9\] { background-color: #171717 !important; }
 html.dark .bg-gradient-to-r { background-image: none !important; background-color: #181818 !important; }
 html.dark .text-mahogany, html.dark .text-mahogany\/70, html.dark .text-mahogany\/60, html.dark .text-mahogany\/55, html.dark .text-mahogany\/50, html.dark .text-mahogany\/45, html.dark .text-mahogany\/40 { color: var(--foreground) !important; }
 html.dark .border-crystal { border-color: #3b3b3b !important; }
 html.dark input, html.dark textarea, html.dark select { background-color: #0b0b0b !important; color: var(--foreground) !important; }
+html.dark input[type="date"] { color-scheme: dark; }
 html.dark .bg-rose-100, html.dark .bg-amber-50 { background-color: #332022 !important; }
 html.dark .text-rose-600, html.dark .text-amber-900\/75, html.dark .text-amber-950 { color: #ffd8dc !important; }
 html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#dceaff\,_\#f5f8fc_45\%\)\], html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#e0edff\,_\#f5f8fc_42\%\)\] { background-image: radial-gradient(circle at top right, #171717, #050505 55%) !important; }

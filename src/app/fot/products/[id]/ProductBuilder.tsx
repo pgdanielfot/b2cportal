@@ -158,20 +158,20 @@ export default function ProductBuilder({ initial }: { initial: ProductDraft }) {
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-3 z-10 flex flex-col gap-3 rounded-2xl border border-crystal bg-white/95 p-3 shadow-sm backdrop-blur sm:flex-row sm:items-center">
-        <input
+      <div className="sticky top-3 z-10 flex flex-col gap-3 rounded-2xl border border-crystal bg-white p-4 shadow-lg shadow-[#172b5410] sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1"><p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-mahogany/50">Product configuration</p><input
           value={draft.name}
           onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-          className="flex-1 rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-lg font-bold text-mahogany outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
-        />
-        <button
+          className="w-full rounded-xl border border-crystal bg-[#fbfcff] px-4 py-3 text-lg font-bold text-mahogany outline-none transition focus:border-ignite focus:ring-4 focus:ring-ignite/10"
+        /></div>
+        <div className="flex shrink-0 items-center gap-3"><button
           onClick={handleSave}
           disabled={isPending}
           className="rounded-xl bg-ignite px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-ignite-hover disabled:opacity-50"
         >
-          {isPending ? "Saving..." : "Save"}
+          {isPending ? "Saving..." : "Save changes"}
         </button>
-        {savedAt && <span className="text-sm text-mahogany/50">Saved at {savedAt}</span>}
+        {savedAt && <span className="hidden text-xs text-mahogany/50 lg:inline">Saved {savedAt}</span>}</div>
       </div>
 
       {draft.steps.map((step, stepIndex) => (
