@@ -9,6 +9,7 @@ import { imageSize } from "image-size";
 import { formatLabels } from "@/lib/fileFormats";
 import { isConditionMet, type Condition } from "@/lib/conditions";
 import { minLeadDateString } from "@/lib/dates";
+import type { Language } from "@/lib/i18n";
 
 const MIN_LEAD_WORKING_DAYS = 7;
 
@@ -126,6 +127,24 @@ export async function saveCampaignIntake(token: string, language: string, agentN
     ),
   ]);
   revalidatePath(`/campaign/${token}`);
+  return { ok: true as const };
+}
+
+/** Lets an agent correct the language selected when the campaign link was opened. */
+export async function updateCampaignLanguageForSubmission(token: string, language: Language) {
+  const submission = await prisma.submission.findUnique({
+    where: { shareToken: token },
+    include: { campaign: { select: { id: true, shareToken: true } } },
+  });
+
+  if (!submission?.campaign) return { ok: false as const, error: "This campaign link is invalid." };
+
+  await prisma.campaign.update({
+    where: { id: submission.campaign.id },
+    data: { language },
+  });
+  revalidatePath(`/campaign/${submission.campaign.shareToken}`);
+  revalidatePath(`/fill/${token}`);
   return { ok: true as const };
 }
 
