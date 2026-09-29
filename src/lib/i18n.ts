@@ -64,6 +64,9 @@ type Dictionary = {
   removeThisFile: string;
   fileHasDimensions: string;
   requiredSize: string;
+  changeLanguage: string;
+  design: string;
+  previewPlacement: string;
 };
 
 export const translations: Record<Language, Dictionary> = {
@@ -125,6 +128,9 @@ export const translations: Record<Language, Dictionary> = {
     removeThisFile: "Remove this file",
     fileHasDimensions: "has dimensions",
     requiredSize: "Required size",
+    changeLanguage: "Change language",
+    design: "Design",
+    previewPlacement: "Preview placement",
   },
   ms: {
     chooseLanguage: "Pilih bahasa anda",
@@ -184,6 +190,9 @@ export const translations: Record<Language, Dictionary> = {
     removeThisFile: "Buang fail ini",
     fileHasDimensions: "mempunyai dimensi",
     requiredSize: "Saiz diperlukan",
+    changeLanguage: "Tukar bahasa",
+    design: "Reka bentuk",
+    previewPlacement: "Penempatan pratonton",
   },
   zh: {
     chooseLanguage: "请选择您的语言",
@@ -243,6 +252,9 @@ export const translations: Record<Language, Dictionary> = {
     removeThisFile: "移除此文件",
     fileHasDimensions: "尺寸为",
     requiredSize: "所需尺寸",
+    changeLanguage: "更改语言",
+    design: "设计",
+    previewPlacement: "预览版位",
   },
 };
 

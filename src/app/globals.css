@@ -75,3 +75,9 @@ html.dark .bg-rose-100, html.dark .bg-amber-50 { background-color: #332022 !impo
 html.dark .text-rose-600, html.dark .text-amber-900\/75, html.dark .text-amber-950 { color: #ffd8dc !important; }
 html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#dceaff\,_\#f5f8fc_45\%\)\], html.dark .bg-\[radial-gradient\(circle_at_top_right\,_\#e0edff\,_\#f5f8fc_42\%\)\] { background-image: radial-gradient(circle at top right, #171717, #050505 55%) !important; }
 html.dark .bg-\[linear-gradient\(135deg\,_\#fff\,_\#f5f9ff\)\], html.dark .bg-\[linear-gradient\(135deg\,_\#edf4ff\,_\#ffffff_65\%\)\] { background-image: none !important; background-color: #111 !important; }
+
+/* Ad previews depict the actual light Facebook and Instagram surfaces, even
+   when the surrounding portal is viewed in dark mode. */
+html.dark .preview-surface { background-color: #e9f0fa !important; color-scheme: light; }
+html.dark .preview-surface .bg-white, html.dark .preview-surface .bg-\[\#e8eff9\], html.dark .preview-surface .bg-\[\#f7f9fc\] { background-color: #fff !important; }
+html.dark .preview-surface .bg-slate-50 { background-color: #f8fafc !important; }

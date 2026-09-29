@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { submitFillForm } from "@/app/actions/submissions";
+import { submitFillForm, updateCampaignLanguageForSubmission } from "@/app/actions/submissions";
 import FileFieldInput from "./FileFieldInput";
 import LiveAdPreview, { type Media } from "./LiveAdPreview";
 import { isConditionMet, type Condition } from "@/lib/conditions";
@@ -65,6 +65,7 @@ export default function FillWizard({
   const [language, setLanguage] = useState<Language | null>(initialLanguage ?? null);
   const [visiblePosition, setVisiblePosition] = useState(0);
   const [isPending, startTransition] = useTransition();
+  const [isChangingLanguage, startLanguageTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [charCounts, setCharCounts] = useState<Record<string, number>>({});
@@ -144,6 +145,17 @@ export default function FillWizard({
 
   function handlePreviewMediaChange(fieldId: string, media: Media[]) {
     setPreviewMedia((current) => ({ ...current, [fieldId]: media }));
+  }
+
+  function chooseLanguage(nextLanguage: Language) {
+    setLanguage(nextLanguage);
+    setError(null);
+    if (!campaignUrl) return;
+
+    startLanguageTransition(async () => {
+      const result = await updateCampaignLanguageForSubmission(token, nextLanguage);
+      if (!result.ok) setError(result.error);
+    });
   }
 
   function validateStep(stepIndex: number): string | null {
@@ -266,7 +278,7 @@ export default function FillWizard({
             <button
               key={l.code}
               type="button"
-              onClick={() => setLanguage(l.code)}
+              onClick={() => chooseLanguage(l.code)}
               className="rounded-md border border-crystal px-4 py-3 text-sm font-medium text-mahogany hover:bg-crystal-soft"
             >
               {l.label}
@@ -308,7 +320,7 @@ export default function FillWizard({
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-crystal bg-white/75 px-5 py-4 shadow-sm backdrop-blur">
-        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ignite">Campaign submission</p><h1 className="mt-0.5 text-xl font-bold text-mahogany">{productName}</h1></div><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">Step {visiblePosition + 1} of {visibleStepIndices.length}</span></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ignite">Campaign submission</p><h1 className="mt-0.5 text-xl font-bold text-mahogany">{productName}</h1></div><div className="flex items-center gap-2"><button type="button" onClick={() => { setError(null); setLanguage(null); }} disabled={isChangingLanguage} className="rounded-lg border border-crystal bg-white px-3 py-1.5 text-xs font-semibold text-mahogany transition hover:bg-crystal-soft disabled:opacity-50">{t.changeLanguage}</button><span className="rounded-full bg-crystal-soft px-3 py-1.5 text-xs font-semibold text-mahogany/60">Step {visiblePosition + 1} of {visibleStepIndices.length}</span></div></div>
         <div className="mt-2 flex gap-1">
           {visibleStepIndices.map((_, i) => (
             <div

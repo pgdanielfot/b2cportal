@@ -1,111 +1,78 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useState } from "react";
-import { localizeCommonContent, translations, type Language } from "@/lib/i18n";
+import { translations, type Language } from "@/lib/i18n";
 
-type Props = {
-  brand?: string;
-  feedMedia?: Media[];
-  storyImage?: Media[];
-  storyVideo?: Media[];
-  caption?: string;
-  cta?: string;
-  destination?: string;
-  language?: Language;
-};
+type Props = { brand?: string; feedMedia?: Media[]; storyImage?: Media[]; storyVideo?: Media[]; caption?: string; cta?: string; destination?: string; language?: Language };
 export type Media = { url: string; type: string };
+type Placement = "facebook-feed" | "instagram-feed" | "instagram-stories" | "facebook-stories" | "facebook-marketplace" | "instagram-reels";
+const PLACEMENTS: { id: Placement; label: string; platform: "Facebook" | "Instagram"; story: boolean }[] = [
+  { id: "facebook-feed", label: "Facebook Feed", platform: "Facebook", story: false }, { id: "instagram-feed", label: "Instagram Feed", platform: "Instagram", story: false }, { id: "instagram-stories", label: "Instagram Stories", platform: "Instagram", story: true },
+  { id: "facebook-stories", label: "Facebook Stories", platform: "Facebook", story: true }, { id: "facebook-marketplace", label: "Facebook Marketplace", platform: "Facebook", story: false }, { id: "instagram-reels", label: "Instagram Reels", platform: "Instagram", story: true },
+];
 
-export default function LiveAdPreview({ brand, feedMedia, storyImage, storyVideo, caption, cta, destination, language = "en" }: Props) {
-  const [placement, setPlacement] = useState<"FEED" | "STORY">("FEED");
+export default function LiveAdPreview({ brand, feedMedia = [], storyImage = [], storyVideo = [], caption, cta, destination, language = "en" }: Props) {
+  const [placement, setPlacement] = useState<Placement>("facebook-feed");
   const [storyFormat, setStoryFormat] = useState<"IMAGE" | "VIDEO">("IMAGE");
-  const [platform, setPlatform] = useState<"FACEBOOK" | "INSTAGRAM">("FACEBOOK");
-  const [feedIndex, setFeedIndex] = useState(0);
-  const [storyImageIndex, setStoryImageIndex] = useState(0);
-  const [storyVideoIndex, setStoryVideoIndex] = useState(0);
+  const [designIndex, setDesignIndex] = useState(0);
   const t = translations[language];
-  const action = localizeCommonContent(cta || t.learnMore, language);
+  const selected = PLACEMENTS.find((item) => item.id === placement)!;
+  const media = selected.story ? (storyFormat === "VIDEO" ? storyVideo : storyImage) : feedMedia;
+  const activeDesignIndex = Math.min(designIndex, Math.max(media.length - 1, 0));
+  const activeMedia = media[activeDesignIndex] ?? media[0];
+  const action = cta || t.learnMore;
   const brandLabel = /propertyguru.*\+.*iproperty|both/i.test(brand ?? "") ? "PropertyGuru / iProperty" : /iproperty|ipp/i.test(brand ?? "") ? "iProperty" : /propertyguru|\bpg\b/i.test(brand ?? "") ? "PropertyGuru" : "PropertyGuru / iProperty";
-  const feed = feedMedia ?? [];
-  const storyImages = storyImage ?? [];
-  const storyVideos = storyVideo ?? [];
-  const activeStoryMedia = storyFormat === "VIDEO" ? storyVideos : storyImages;
 
   return <section className="rounded-2xl border border-crystal bg-white p-4 shadow-sm">
-    <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-mahogany">{t.liveAdPreview}</h2><p className="text-xs text-mahogany/55">Preview Iklan Langsung · 实时广告预览</p></div><span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">● LIVE</span></div>
-    <div className="mt-3 flex flex-wrap gap-2"><Tab active={platform === "FACEBOOK"} onClick={() => setPlatform("FACEBOOK")}>Facebook</Tab><Tab active={platform === "INSTAGRAM"} onClick={() => setPlatform("INSTAGRAM")}>Instagram</Tab><span className="mx-1 hidden h-7 w-px bg-crystal sm:block" /><Tab active={placement === "FEED"} onClick={() => setPlacement("FEED")}>{t.feed}</Tab><Tab active={placement === "STORY"} onClick={() => setPlacement("STORY")}>{t.story}</Tab></div>
-    {placement === "STORY" && storyVideos.length > 0 && <div className="mt-2 flex gap-2 text-[11px]"><button type="button" onClick={() => setStoryFormat("IMAGE")} className={`rounded px-2 py-1 ${storyFormat === "IMAGE" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyImage}</button><button type="button" onClick={() => setStoryFormat("VIDEO")} className={`rounded px-2 py-1 ${storyFormat === "VIDEO" ? "bg-crystal text-mahogany" : "text-mahogany/55"}`}>{t.storyVideo}</button></div>}
-    {placement === "FEED" && <CreativeSelector count={feed.length} activeIndex={feedIndex} onChange={setFeedIndex} />}
-    {placement === "STORY" && <CreativeSelector count={activeStoryMedia.length} activeIndex={storyFormat === "VIDEO" ? storyVideoIndex : storyImageIndex} onChange={storyFormat === "VIDEO" ? setStoryVideoIndex : setStoryImageIndex} />}
-    <div className="mt-3 rounded-xl bg-[#e9f0fa] p-3 sm:p-4">
-      <div className="mx-auto max-w-[360px]">
-        <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-mahogany/55">{platform === "FACEBOOK" ? "Facebook" : "Instagram"}</p>
-        {placement === "FEED" ? <FeedPost instagram={platform === "INSTAGRAM"} brand={brandLabel} media={feed[feedIndex] ?? feed[0]} caption={caption} action={action} destination={destination} t={t} /> : <StoryPost brand={brandLabel} media={activeStoryMedia[storyFormat === "VIDEO" ? storyVideoIndex : storyImageIndex] ?? activeStoryMedia[0]} caption={caption} action={action} t={t} />}
-      </div>
-    </div>
-    <p className="mt-3 text-[11px] leading-4 text-mahogany/45">{t.visualGuide}</p>
+    <div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-mahogany">{t.liveAdPreview}</h2><p className="text-xs text-mahogany/55">Facebook · Instagram</p></div><span className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-bold text-white">● LIVE</span></div>
+    <div className="mt-4"><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-mahogany/50">{t.previewPlacement}</p><div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{PLACEMENTS.map((item) => <button key={item.id} type="button" onClick={() => setPlacement(item.id)} className={`rounded-lg border px-2 py-2 text-left text-[11px] font-semibold transition ${placement === item.id ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/65 hover:bg-crystal-soft"}`}><span className="block text-[10px] opacity-65">{item.platform}</span>{item.label.replace(`${item.platform} `, "")}</button>)}</div></div>
+    {selected.story && storyVideo.length > 0 && <div className="mt-3 flex gap-2 text-[11px]"><Tab active={storyFormat === "IMAGE"} onClick={() => setStoryFormat("IMAGE")}>{t.storyImage}</Tab><Tab active={storyFormat === "VIDEO"} onClick={() => setStoryFormat("VIDEO")}>{t.storyVideo}</Tab></div>}
+    {media.length > 1 && <div className="mt-3 flex flex-wrap items-center gap-2"><span className="text-[11px] font-medium text-mahogany/55">{t.design}</span>{media.map((_, index) => <button key={index} type="button" onClick={() => setDesignIndex(index)} className={`rounded-md border px-2.5 py-1 text-[11px] font-semibold ${activeDesignIndex === index ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/60 hover:bg-crystal-soft"}`}>{t.design} {index + 1}</button>)}</div>}
+    <div className="preview-surface mt-4 rounded-xl bg-[#e9f0fa] p-3 sm:p-4"><p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">{selected.label}</p>
+      {placement === "facebook-feed" && <FacebookFeed brand={brandLabel} media={activeMedia} caption={caption} action={action} destination={destination} t={t} />}
+      {placement === "instagram-feed" && <InstagramFeed brand={brandLabel} media={activeMedia} caption={caption} action={action} destination={destination} t={t} />}
+      {placement === "facebook-marketplace" && <Marketplace brand={brandLabel} media={activeMedia} caption={caption} action={action} destination={destination} t={t} />}
+      {placement === "instagram-stories" && <Story brand={brandLabel} media={activeMedia} caption={caption} action={action} t={t} instagram />}
+      {placement === "facebook-stories" && <FacebookStory brand={brandLabel} media={activeMedia} action={action} t={t} />}
+      {placement === "instagram-reels" && <Reel brand={brandLabel} media={activeMedia} caption={caption} action={action} t={t} />}
+    </div><p className="mt-3 text-[11px] leading-4 text-mahogany/45">{t.visualGuide}</p>
   </section>;
 }
 
-function CreativeSelector({ count, activeIndex, onChange }: { count: number; activeIndex: number; onChange: (index: number) => void }) {
-  if (count < 2) return null;
-  return <div className="mt-2 flex items-center gap-2"><span className="text-[11px] font-medium text-mahogany/55">Creative</span>{Array.from({ length: count }, (_, index) => <button key={index} type="button" onClick={() => onChange(index)} className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${activeIndex === index ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/60 hover:bg-crystal-soft"}`}>{index + 1}</button>)}</div>;
-}
-
-function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${active ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/60 hover:bg-crystal-soft"}`}>{children}</button>; }
-
-function FeedPost({ instagram, brand, media, caption, action, destination, t }: { instagram: boolean; brand: string; media?: Media; caption?: string; action: string; destination?: string; t: (typeof translations)[Language] }) {
-  return <div className="mx-auto w-full max-w-[340px] overflow-hidden rounded-xl border border-crystal bg-white shadow-sm">
-    <div className="flex items-center gap-2 px-3 py-2.5"><Avatar brand={brand} /><div className="min-w-0"><p className="truncate text-xs font-bold text-mahogany">{brand}</p><p className="text-[10px] text-mahogany/50">{instagram ? "Sponsored" : "Sponsored · Facebook"}</p></div><span className="ml-auto text-lg leading-none text-mahogany/50">•••</span></div>
+function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-md border px-3 py-1.5 font-semibold ${active ? "border-ignite bg-ignite/5 text-ignite" : "border-crystal text-mahogany/60 hover:bg-crystal-soft"}`}>{children}</button>; }
+type PreviewProps = { brand: string; media?: Media; caption?: string; action: string; destination?: string; t: (typeof translations)[Language] };
+function FacebookFeed({ brand, media, caption, action, destination, t }: PreviewProps) {
+  return <div className="mx-auto max-w-[340px] overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-900 shadow-sm">
+    <div className="space-y-2 px-3 pt-3"><Header brand={brand} sub="Sponsored" /><p className="line-clamp-3 whitespace-pre-wrap text-[11px]">{caption || t.campaignCaptionHint}</p></div>
     <Creative media={media} ratio="1 / 1" t={t} />
-    {instagram && <div className="px-3 pt-2 text-base tracking-wide text-mahogany">♡　◯　⌁</div>}
-    <div className="space-y-1 px-3 py-2"><p className="whitespace-pre-wrap text-xs text-mahogany"><b>{brand}</b> {caption || t.campaignCaptionHint}</p><p className="truncate text-[10px] text-mahogany/45">{destination || (instagram ? "View more" : "Sponsored")}</p></div>
-    {!instagram && <div className="flex items-center justify-between border-t border-crystal bg-[#f7f9fc] px-3 py-2"><span className="max-w-32 truncate text-[10px] font-semibold uppercase text-mahogany/55">{destination || "PROPERTYGURU.COM.MY"}</span><ActionButton brand={brand}>{action}</ActionButton></div>}
-    {instagram && <div className="border-t border-crystal bg-[#f7f9fc] p-2"><ActionButton brand={brand} full>{action}</ActionButton></div>}
+    <div className="flex items-center justify-between bg-slate-50 px-3 py-2"><div className="min-w-0"><p className="truncate text-[10px] font-semibold uppercase text-slate-500">{domain(destination)}</p><p className="truncate text-[11px] font-semibold text-slate-800">{caption || t.campaignCaptionHint}</p></div><ActionButton brand={brand}>{action}</ActionButton></div>
+    <div className="flex items-center justify-between border-y border-slate-100 px-3 py-2 text-[10px] text-slate-500"><span className="flex items-center gap-1"><span className="rounded-full bg-[#1877f2] px-1 text-[8px] text-white">👍</span><span className="rounded-full bg-[#f55365] px-1 text-[8px] text-white">♥</span> 4</span><span>1 comment · 1 share</span></div>
+    <div className="grid grid-cols-3 px-1 py-1"><FacebookAction icon={<LikeIcon />} label="Like" /><FacebookAction icon={<CommentIcon />} label="Comment" /><FacebookAction icon={<ShareIcon />} label="Share" /></div>
   </div>;
 }
-
-function StoryPost({ brand, media, caption, action, t }: { brand: string; media?: Media; caption?: string; action: string; t: (typeof translations)[Language] }) {
-  return <div className="mx-auto w-full max-w-[300px] overflow-hidden rounded-[1.7rem] border-[6px] border-[#111b30] bg-[#111b30] shadow-[0_18px_34px_rgba(20,35,60,0.3)]">
-    <div className="relative aspect-[9/16] overflow-hidden bg-[#dce6f5]">
-      <Creative media={media} ratio="9 / 16" full t={t} />
-      <div className="absolute inset-x-3 top-3 h-0.5 rounded bg-white/55"><div className="h-full w-2/3 rounded bg-white" /></div>
-      <div className="absolute inset-x-3 top-6 flex items-center gap-2 text-white"><Avatar brand={brand} /><div><p className="text-[10px] font-bold drop-shadow">{brand}</p><p className="text-[9px] opacity-85">Sponsored</p></div><span className="ml-auto text-sm">•••</span></div>
-      <p className="absolute inset-x-4 bottom-16 line-clamp-2 text-[10px] font-semibold leading-4 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{caption || t.campaignCaptionHint}</p>
-      <div className="absolute inset-x-4 bottom-5"><ActionButton brand={brand} full>{action}</ActionButton></div>
-    </div>
-  </div>;
+function FacebookAction({ icon, label }: { icon: React.ReactNode; label: string }) { return <button type="button" className="flex items-center justify-center gap-1.5 rounded py-1.5 text-[10px] font-semibold text-slate-500 hover:bg-slate-100">{icon}{label}</button>; }
+function LikeIcon() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]"><path d="M7.4 8.2 9.6 3c.3-.7 1.3-.5 1.3.3v3.2h4.2c.8 0 1.3.7 1.1 1.5l-1 4.9c-.1.6-.6 1-1.2 1H7.4M7.4 8.2v5.7H4.5V8.2h2.9Z" /></svg>; }
+function CommentIcon() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]"><path d="M16 3.8H4c-.7 0-1.2.5-1.2 1.2v7.1c0 .7.5 1.2 1.2 1.2h5l3.3 2.5v-2.5H16c.7 0 1.2-.5 1.2-1.2V5c0-.7-.5-1.2-1.2-1.2Z" /></svg>; }
+function ShareIcon() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]"><path d="m10.5 3.2 5.2 4.3-5.2 4.2V9.2c-3.8.1-5.8 1.6-6.5 4.3.1-4.9 2.3-7.1 6.5-7.3V3.2ZM4 15.1h12v1.7H4z" /></svg>; }
+function InstagramHeart() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="h-[18px] w-[18px] fill-none stroke-current stroke-[1.7]"><path d="M10 16.4 3.8 10.7A4 4 0 0 1 9.5 5L10 5.6l.5-.6a4 4 0 0 1 5.7 5.7L10 16.4Z" /></svg>; }
+function InstagramSend() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="h-[18px] w-[18px] fill-none stroke-current stroke-[1.7]"><path d="m17 3-6.1 14-2.2-6.1L3 8.7 17 3Z M8.7 10.9 17 3" /></svg>; }
+function BookmarkIcon() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="ml-auto h-[18px] w-[18px] fill-none stroke-current stroke-[1.7]"><path d="M5.5 3.2h9v13.3L10 13.7l-4.5 2.8V3.2Z" /></svg>; }
+function InstagramFeed({ brand, media, caption, action, t }: PreviewProps) { return <div className="mx-auto max-w-[340px] overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-900 shadow-sm"><div className="px-3 py-2.5"><Header brand={brand} sub="Ad" /></div><Creative media={media} ratio="1 / 1" t={t} /><button type="button" className="flex w-full items-center justify-between border-b border-slate-100 px-3 py-2 text-left text-[11px] font-medium text-slate-900"><span>{action}</span><span className="text-lg leading-none">›</span></button><div className="flex items-center px-3 py-2.5 text-slate-900"><div className="flex items-center gap-3"><InstagramHeart /><CommentIcon /><InstagramSend /></div><BookmarkIcon /></div><div className="space-y-1 px-3 pb-3"><p className="line-clamp-3 whitespace-pre-wrap text-[11px]"><b>{brand}</b> {caption || t.campaignCaptionHint}</p><p className="text-[10px] text-slate-500">*Listed by agent</p></div></div>; }
+function Marketplace({ brand, media, caption, t }: PreviewProps) { return <div className="mx-auto flex max-w-[250px] items-center justify-center rounded-lg bg-white px-4 py-5"><div className="min-h-[340px] w-[180px] overflow-hidden rounded-md border border-slate-200 bg-white text-slate-900 shadow-sm"><div className="px-2.5 py-2"><Header brand={brand} sub="Sponsored" compact /></div><Creative media={media} ratio="1 / 1" t={t} /><div className="border-t border-slate-100 px-2.5 py-2"><p className="line-clamp-3 whitespace-pre-wrap text-[11px] font-semibold leading-4">{caption || t.campaignCaptionHint}</p></div></div></div>; }
+function Story({ brand, media, caption, action, t, instagram = false }: Omit<PreviewProps, "destination"> & { instagram?: boolean }) {
+  if (instagram) return <InstagramStory brand={brand} media={media} action={action} t={t} />;
+  return <div className="mx-auto w-full max-w-[280px] overflow-hidden rounded-[1.35rem] border-[5px] border-[#101827] bg-[#101827] shadow-[0_18px_34px_rgba(20,35,60,0.3)]"><div className="relative aspect-[9/16] overflow-hidden bg-[#dce6f5]"><Creative media={media} ratio="9 / 16" full t={t} /><div className="absolute inset-x-3 top-3 flex gap-1">{[0, 1, 2].map((item) => <span key={item} className="h-0.5 flex-1 rounded bg-white/65" />)}</div><div className="absolute inset-x-3 top-6 flex items-center gap-2 text-white"><Avatar brand={brand} /><div><p className="text-[10px] font-bold drop-shadow">{brand}</p><p className="text-[9px] opacity-85">Sponsored</p></div><span className="ml-auto text-sm">•••</span></div><p className="absolute inset-x-4 bottom-16 line-clamp-2 text-[10px] font-semibold leading-4 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{caption || t.campaignCaptionHint}</p><div className="absolute inset-x-4 bottom-5"><ActionButton brand={brand} full>{action}</ActionButton></div></div></div>;
 }
-
-function Avatar({ brand }: { brand: string }) {
-  if (brand === "PropertyGuru / iProperty") {
-    return <span aria-label="PropertyGuru and iProperty" className="flex h-9 w-9 shrink-0 rounded-full bg-[#8a919b] shadow-sm" />;
-  }
-  if (brand === "PropertyGuru") {
-    return <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-sm">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/brands/propertyguru-profile.png" alt="PropertyGuru" className="h-full w-full object-cover" />
-    </span>
-  }
-  return <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white bg-white shadow-sm">
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src="/brands/iproperty.jpeg" alt="iProperty" className="h-full w-full object-contain" />
-  </span>;
-}
-
-function ActionButton({ brand, full = false, children }: { brand: string; full?: boolean; children: React.ReactNode }) {
-  const color = brand === "PropertyGuru" ? "bg-[#d80000]" : brand === "iProperty" ? "bg-[#2169df]" : "bg-[#707782]";
-  return <button type="button" className={`${full ? "w-full" : ""} rounded-md ${color} px-4 py-2 text-[10px] font-bold text-white`}>{children}</button>;
-}
-
-function Creative({ media, ratio, full = false, t }: { media?: Media; ratio: string; full?: boolean; t: (typeof translations)[Language] }) {
-  return <div className={`relative flex items-center justify-center overflow-hidden bg-[#e8eff9] ${full ? "h-full" : ""}`} style={full ? undefined : { aspectRatio: ratio }}>
-    {media ? <>
-      {/* Object URLs from the local upload input cannot use next/image. */}
-      {media.type.startsWith("video/") ? <video src={media.url} className="h-full w-full object-cover" controls autoPlay loop muted playsInline preload="metadata" /> : <>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={media.url} alt="Uploaded ad creative preview" className="h-full w-full object-cover" />
-      </>}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-    </> : <div className="text-center text-[#8499b9]"><p className="text-2xl">▧</p><p className="mt-1 text-xs font-semibold">{t.previewPlaceholder}</p><p className="text-[10px]">{t.uploadCreativeHint}</p></div>}
-  </div>;
-}
+function FacebookStory({ brand, media, action, t }: Omit<PreviewProps, "caption" | "destination">) { const account = brand.toLowerCase().replace(/\s*\/\s*/g, ""); return <div className="mx-auto w-full max-w-[280px] overflow-hidden rounded-md border border-slate-300 bg-black shadow-[0_12px_25px_rgba(20,35,60,0.22)]"><div className="relative aspect-[9/16] overflow-hidden"><Creative media={media} ratio="9 / 16" full t={t} /><div className="absolute inset-0 bg-black/[0.04]" /><div className="absolute inset-x-2 top-2 flex gap-1">{[0, 1, 2].map((item) => <span key={item} className="h-0.5 flex-1 rounded bg-white/70" />)}</div><div className="absolute inset-x-3 top-5 flex items-center gap-1.5 text-white"><Avatar brand={brand} /><div className="min-w-0"><p className="truncate text-[9px] font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{account}.com</p><p className="text-[8px] opacity-90">Ad</p></div><span className="ml-auto text-sm">•••　×</span></div><div className="absolute inset-x-5 bottom-6 text-center"><span className="mb-2 block text-sm text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">⌃</span><button type="button" className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow"><img src="/icons/meta-link.png" alt="" className="h-4 w-4 object-contain" />{action}</button></div></div></div>; }
+function InstagramStory({ brand, media, action, t }: Omit<PreviewProps, "caption" | "destination">) { const account = brand.toLowerCase().replace(/\s*\/\s*/g, ""); return <div className="mx-auto w-full max-w-[280px] overflow-hidden rounded-md border border-slate-300 bg-black shadow-[0_12px_25px_rgba(20,35,60,0.22)]"><div className="relative aspect-[9/16] overflow-hidden"><Creative media={media} ratio="9 / 16" full t={t} /><div className="absolute inset-0 bg-black/[0.08]" /><div className="absolute inset-x-2 top-2 flex gap-1">{[0, 1, 2].map((item) => <span key={item} className="h-0.5 flex-1 rounded bg-white/70" />)}</div><div className="absolute inset-x-3 top-5 flex items-center gap-1.5 text-white"><Avatar brand={brand} /><p className="text-[9px] font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{account}</p><span className="text-[9px]">●</span><span className="ml-auto text-sm">•••　×</span></div><div className="absolute inset-x-7 top-[51%] -translate-y-1/2 text-center text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]"><StoryMediaThumb media={media} /><p className="mt-1 text-[11px] font-bold">{account}</p><p className="text-[8px]">{account}.com</p><button type="button" className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-slate-800 shadow"><img src="/icons/meta-link.png" alt="" className="h-4 w-4 object-contain" />{action}</button></div><div className="absolute inset-x-0 bottom-0 flex h-10 items-center justify-between bg-black/90 px-3 text-[10px] font-bold text-white"><span>Ad</span><span className="flex items-center gap-3"><StoryHeart /><StoryComment /><StorySend /></span></div></div></div>; }
+function StoryMediaThumb({ media }: { media?: Media }) { return <span className="inline-flex h-9 w-9 overflow-hidden rounded border border-white/80 bg-slate-200 shadow">{media?.type.startsWith("video/") ? <video src={media.url} className="h-full w-full object-cover" muted playsInline preload="metadata" /> : media ? <img src={media.url} alt="Creative thumbnail" className="h-full w-full object-cover" /> : <span className="m-auto text-slate-400">▧</span>}</span>; }
+function StoryHeart() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="h-[19px] w-[19px] fill-none stroke-white stroke-[1.7]"><path d="M10 16.4 3.8 10.7A4 4 0 0 1 9.5 5L10 5.6l.5-.6a4 4 0 0 1 5.7 5.7L10 16.4Z" /></svg>; }
+function StoryComment() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="h-[19px] w-[19px] fill-none stroke-white stroke-[1.7]"><path d="M16 3.8H4c-.7 0-1.2.5-1.2 1.2v7.1c0 .7.5 1.2 1.2 1.2h5l3.3 2.5v-2.5H16c.7 0 1.2-.5 1.2-1.2V5c0-.7-.5-1.2-1.2-1.2Z" /></svg>; }
+function StorySend() { return <svg aria-hidden="true" viewBox="0 0 20 20" className="h-[19px] w-[19px] fill-none stroke-white stroke-[1.7]"><path d="m17 3-6.1 14-2.2-6.1L3 8.7 17 3Z M8.7 10.9 17 3" /></svg>; }
+function Reel({ brand, media, caption, action, t }: Omit<PreviewProps, "destination">) { const account = brand.toLowerCase().replace(/\s*\/\s*/g, ""); return <div className="mx-auto w-full max-w-[240px] overflow-hidden rounded-sm border border-slate-300 bg-black shadow-[0_12px_25px_rgba(20,35,60,0.22)]"><div className="relative aspect-[9/16] overflow-hidden"><Creative media={media} ratio="9 / 16" full t={t} /><div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" /><p className="absolute left-3 top-3 text-xs font-bold text-white">Reels</p><span className="absolute right-3 top-3 text-sm text-white">▣</span><button type="button" className="absolute left-4 right-12 bottom-[19%] flex items-center justify-between rounded bg-white px-3 py-2 text-[10px] font-medium text-slate-900 shadow"><span>{action}</span><span className="text-base leading-none">›</span></button><div className="absolute right-3 bottom-3 flex flex-col items-center gap-2.5 text-white"><span className="flex flex-col items-center"><StoryHeart /><small className="mt-0.5 text-[8px]">4</small></span><StoryComment /><StorySend /></div><div className="absolute inset-x-3 bottom-3 pr-10 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]"><div className="flex items-center gap-1.5"><Avatar brand={brand} /><p className="text-[9px] font-bold">{account}</p><span className="rounded border border-white px-1.5 py-0.5 text-[8px] font-semibold">Follow</span></div><p className="mt-1 line-clamp-2 text-[8px]">{caption || t.campaignCaptionHint}</p><p className="mt-1 text-[8px] font-semibold">Ad</p></div></div></div>; }
+function Header({ brand, sub, compact = false }: { brand: string; sub: string; compact?: boolean }) { return <div className="flex items-center gap-2"><Avatar brand={brand} /><div className="min-w-0"><p className={`truncate font-bold ${compact ? "text-[10px]" : "text-xs"}`}>{brand}</p><p className="text-[10px] text-slate-400">{sub}</p></div><span className="ml-auto text-lg leading-none text-slate-400">•••</span></div>; }
+function Avatar({ brand }: { brand: string }) { if (brand === "PropertyGuru / iProperty") return <span aria-label="PropertyGuru and iProperty" className="flex h-8 w-8 shrink-0 rounded-full bg-[#8a919b] shadow-sm" />; if (brand === "PropertyGuru") return <span className="flex h-8 w-8 shrink-0 overflow-hidden rounded-full shadow-sm"><img src="/brands/propertyguru-profile.png" alt="PropertyGuru" className="h-full w-full object-cover" /></span>; return <span className="flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-slate-100 bg-white shadow-sm"><img src="/brands/iproperty.jpeg" alt="iProperty" className="h-full w-full object-contain" /></span>; }
+function ActionButton({ brand, full = false, children }: { brand: string; full?: boolean; children: React.ReactNode }) { const color = brand === "PropertyGuru" ? "bg-[#d80000]" : brand === "iProperty" ? "bg-[#2169df]" : "bg-[#707782]"; return <button type="button" className={`${full ? "w-full" : ""} rounded-md ${color} px-3 py-1.5 text-[10px] font-bold text-white`}>{children}</button>; }
+function Creative({ media, ratio, full = false, t }: { media?: Media; ratio: string; full?: boolean; t: (typeof translations)[Language] }) { return <div className={`relative flex items-center justify-center overflow-hidden bg-[#e8eff9] ${full ? "h-full" : ""}`} style={full ? undefined : { aspectRatio: ratio }}>{media ? <>{media.type.startsWith("video/") ? <video src={media.url} className="h-full w-full object-cover" controls autoPlay loop muted playsInline preload="metadata" /> : <img src={media.url} alt="Uploaded ad creative preview" className="h-full w-full object-cover" />}<div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" /></> : <div className="text-center text-[#8499b9]"><p className="text-2xl">▧</p><p className="mt-1 text-xs font-semibold">{t.previewPlaceholder}</p><p className="text-[10px]">{t.uploadCreativeHint}</p></div>}</div>; }
+function domain(destination?: string) { try { return new URL(destination || "").hostname.toUpperCase() || "PROPERTYGURU.COM.MY"; } catch { return "PROPERTYGURU.COM.MY"; } }
